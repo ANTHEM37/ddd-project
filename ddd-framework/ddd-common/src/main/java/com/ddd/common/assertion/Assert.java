@@ -1,0 +1,238 @@
+package com.ddd.common.assertion;
+
+import com.ddd.common.exception.BusinessException;
+import com.ddd.common.exception.BusinessRuleViolationException;
+import com.ddd.common.model.BusinessRule;
+
+import java.util.Collection;
+import java.util.function.Supplier;
+
+/**
+ * 断言工具类
+ * 用于统一管理业务异常的抛出
+ * 
+ * @author anthem37
+ * @date 2025/8/13 16:58:42
+ */
+public final class Assert {
+
+    private Assert() {
+        // 工具类，禁止实例化
+    }
+
+    /**
+     * 断言表达式为真，否则抛出业务异常
+     *
+     * @param expression 表达式
+     * @param message    异常消息
+     * @throws BusinessException 当表达式为false时
+     */
+    public static void isTrue(boolean expression, String message) {
+        if (!expression) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言表达式为真，否则抛出业务异常
+     *
+     * @param expression      表达式
+     * @param messageSupplier 异常消息提供者
+     * @throws BusinessException 当表达式为false时
+     */
+    public static void isTrue(boolean expression, Supplier<String> messageSupplier) {
+        if (!expression) {
+            throw new BusinessException(messageSupplier.get());
+        }
+    }
+
+    /**
+     * 断言表达式为假，否则抛出业务异常
+     *
+     * @param expression 表达式
+     * @param message    异常消息
+     * @throws BusinessException 当表达式为true时
+     */
+    public static void isFalse(boolean expression, String message) {
+        if (expression) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言对象不为null，否则抛出业务异常
+     *
+     * @param object  对象
+     * @param message 异常消息
+     * @throws BusinessException 当对象为null时
+     */
+    public static void notNull(Object object, String message) {
+        if (object == null) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言对象为null，否则抛出业务异常
+     *
+     * @param object  对象
+     * @param message 异常消息
+     * @throws BusinessException 当对象不为null时
+     */
+    public static void isNull(Object object, String message) {
+        if (object != null) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言字符串不为空，否则抛出业务异常
+     *
+     * @param text    字符串
+     * @param message 异常消息
+     * @throws BusinessException 当字符串为null或空时
+     */
+    public static void hasText(String text, String message) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言字符串不为空且长度在指定范围内
+     *
+     * @param text      字符串
+     * @param minLength 最小长度
+     * @param maxLength 最大长度
+     * @param message   异常消息
+     * @throws BusinessException 当字符串不符合要求时
+     */
+    public static void hasLength(String text, int minLength, int maxLength, String message) {
+        hasText(text, message);
+        int length = text.trim().length();
+        if (length < minLength || length > maxLength) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言集合不为空，否则抛出业务异常
+     *
+     * @param collection 集合
+     * @param message    异常消息
+     * @throws BusinessException 当集合为null或空时
+     */
+    public static void notEmpty(Collection<?> collection, String message) {
+        if (collection == null || collection.isEmpty()) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言数组不为空，否则抛出业务异常
+     *
+     * @param array   数组
+     * @param message 异常消息
+     * @throws BusinessException 当数组为null或空时
+     */
+    public static void notEmpty(Object[] array, String message) {
+        if (array == null || array.length == 0) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言数值为正数，否则抛出业务异常
+     *
+     * @param number  数值
+     * @param message 异常消息
+     * @throws BusinessException 当数值小于等于0时
+     */
+    public static void isPositive(Number number, String message) {
+        notNull(number, message);
+        if (number.doubleValue() <= 0) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言数值为非负数，否则抛出业务异常
+     *
+     * @param number  数值
+     * @param message 异常消息
+     * @throws BusinessException 当数值小于0时
+     */
+    public static void isNotNegative(Number number, String message) {
+        notNull(number, message);
+        if (number.doubleValue() < 0) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言数值在指定范围内，否则抛出业务异常
+     *
+     * @param number  数值
+     * @param min     最小值（包含）
+     * @param max     最大值（包含）
+     * @param message 异常消息
+     * @throws BusinessException 当数值不在范围内时
+     */
+    public static void inRange(Number number, Number min, Number max, String message) {
+        notNull(number, message);
+        notNull(min, "最小值不能为空");
+        notNull(max, "最大值不能为空");
+
+        double value = number.doubleValue();
+        double minValue = min.doubleValue();
+        double maxValue = max.doubleValue();
+
+        if (value < minValue || value > maxValue) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言业务规则满足，否则抛出业务规则违反异常
+     *
+     * @param rule 业务规则
+     * @throws BusinessRuleViolationException 当规则不满足时
+     */
+    public static void satisfies(BusinessRule rule) {
+        if (!rule.isSatisfied()) {
+            throw new BusinessRuleViolationException(rule);
+        }
+    }
+
+    /**
+     * 断言多个业务规则都满足，否则抛出第一个不满足的规则异常
+     *
+     * @param rules 业务规则数组
+     * @throws BusinessRuleViolationException 当任一规则不满足时
+     */
+    public static void satisfiesAll(BusinessRule... rules) {
+        for (BusinessRule rule : rules) {
+            satisfies(rule);
+        }
+    }
+
+    /**
+     * 直接抛出业务异常
+     *
+     * @param message 异常消息
+     * @throws BusinessException 业务异常
+     */
+    public static void fail(String message) {
+        throw new BusinessException(message);
+    }
+
+    /**
+     * 直接抛出业务异常
+     *
+     * @param messageSupplier 异常消息提供者
+     * @throws BusinessException 业务异常
+     */
+    public static void fail(Supplier<String> messageSupplier) {
+        throw new BusinessException(messageSupplier.get());
+    }
+}
