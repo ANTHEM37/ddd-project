@@ -25,10 +25,9 @@ import java.util.concurrent.Executor;
 public class QueryBus extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus, InitializingBean {
 
     @Getter
-    private Executor executor;
-
-    @Getter
     private final String messageTypeName = "查询";
+    @Getter
+    private Executor executor;
 
     @Override
     public <R> R send(IQuery<R> query) {

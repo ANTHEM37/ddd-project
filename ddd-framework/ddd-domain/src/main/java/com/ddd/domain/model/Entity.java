@@ -25,5 +25,5 @@ public abstract class Entity<ID> {
         Assert.notNull(id, "实体ID不能为空");
         this.id = id;
     }
-    
+
 }

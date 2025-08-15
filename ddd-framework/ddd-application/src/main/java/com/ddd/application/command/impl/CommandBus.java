@@ -25,10 +25,9 @@ import java.util.concurrent.Executor;
 public class CommandBus extends AbstractMessageBus<ICommand<?>, ICommandHandler<?, ?>> implements ICommandBus, InitializingBean {
 
     @Getter
-    private Executor executor;
-
-    @Getter
     private final String messageTypeName = "命令";
+    @Getter
+    private Executor executor;
 
     @Override
     public <R> R send(ICommand<R> command) {

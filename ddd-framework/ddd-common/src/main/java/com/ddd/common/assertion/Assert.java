@@ -203,6 +203,7 @@ public final class Assert {
     public static void orchestrationFail(String message) {
         throw new OrchestrationException(message);
     }
+
     /**
      * 断言数值为非负数，否则抛出业务异常
      *
