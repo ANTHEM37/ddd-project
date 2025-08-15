@@ -86,25 +86,11 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
      */
     public void markAsRemoved() {
         this.removed = true;
+        addDeletedDomainEvent();
     }
 
     /**
-     * 聚合删除事件
-     * 使用Lombok简化代码
+     * 添加删除领域事件
      */
-    @Getter
-    public static class AggregateRemovedEvent implements IDomainEvent {
-        private final Object aggregateId;
-
-        public AggregateRemovedEvent(Object aggregateId) {
-            this.aggregateId = aggregateId;
-        }
-
-        @Override
-        public String getEventType() {
-            return "AggregateRemoved";
-        }
-
-        // Lombok @Getter 已自动生成 getAggregateId() 方法
-    }
+    abstract void addDeletedDomainEvent();
 }

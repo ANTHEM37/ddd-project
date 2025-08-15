@@ -26,18 +26,28 @@ import java.util.stream.Collectors;
 public abstract class AbstractBaseRepository<T extends AggregateRoot<ID>, ID> implements IRepository<T, ID> {
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void save(T aggregate) {
         Assert.notNull(aggregate, "聚合不能为空");
-
+        //删除
+        if (aggregate.isRemoved()) {
+            log.debug("删除聚合: {}", aggregate.getId());
+            doDeleteById(aggregate.getId());
+            // 发布领域事件
+            publishDomainEvents(aggregate);
+            return;
+        }
+        //更新
         if (existsById(aggregate.getId())) {
             log.debug("更新聚合: {}", aggregate.getId());
             doUpdate(aggregate);
-        } else {
-            log.debug("插入聚合: {}", aggregate.getId());
-            doInsert(aggregate);
+            // 发布领域事件
+            publishDomainEvents(aggregate);
+            return;
         }
-
+        //插入
+        log.debug("插入聚合: {}", aggregate.getId());
+        doInsert(aggregate);
         // 发布领域事件
         publishDomainEvents(aggregate);
     }
@@ -49,13 +59,18 @@ public abstract class AbstractBaseRepository<T extends AggregateRoot<ID>, ID> im
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteById(ID id) {
-        Assert.notNull(id, "ID不能为空");
-        log.debug("删除聚合: {}", id);
-        doDeleteById(id);
+        Optional<T> aggregateOptional = findById(id);
+        if (!aggregateOptional.isPresent()) {
+            log.debug("删除聚合失败，聚合不存在: {}", id);
+            return;
+        }
+        T aggregate = aggregateOptional.get();
+        remove(aggregate);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void remove(T aggregate) {
         Assert.notNull(aggregate, "聚合不能为空");
@@ -86,9 +101,7 @@ public abstract class AbstractBaseRepository<T extends AggregateRoot<ID>, ID> im
      */
     public List<T> findBySpecification(ISpecification<T> specification) {
         List<T> allEntities = findAll();
-        return allEntities.stream()
-                .filter(specification::isSatisfiedBy)
-                .collect(Collectors.toList());
+        return allEntities.stream().filter(specification::isSatisfiedBy).collect(Collectors.toList());
     }
 
     /**

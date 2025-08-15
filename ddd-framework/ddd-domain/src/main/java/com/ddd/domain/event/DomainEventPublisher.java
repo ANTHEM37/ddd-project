@@ -2,9 +2,6 @@ package com.ddd.domain.event;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 领域事件发布器
  * 纯领域层实现，不依赖外部框架
@@ -15,7 +12,6 @@ import java.util.List;
 @Slf4j
 public class DomainEventPublisher {
 
-    private static final ThreadLocal<List<IDomainEvent>> EVENTS = new ThreadLocal<>();
     private static EventPublisher eventPublisher;
 
     /**
@@ -38,38 +34,6 @@ public class DomainEventPublisher {
             return;
         }
         log.debug("未设置事件发布器，事件将被忽略: {}", event.getEventType());
-    }
-
-    /**
-     * 延迟发布事件（在事务提交后）
-     */
-    public static void publishAfterCommit(IDomainEvent event) {
-        List<IDomainEvent> events = EVENTS.get();
-        if (events == null) {
-            events = new ArrayList<>();
-            EVENTS.set(events);
-        }
-        events.add(event);
-    }
-
-    /**
-     * 提交延迟的事件
-     */
-    public static void commitEvents() {
-        List<IDomainEvent> events = EVENTS.get();
-        if (events != null && !events.isEmpty()) {
-            // 逐个发布事件，而不是使用批量发布
-            // 这样可以确保每个事件都被正确处理
-            events.forEach(DomainEventPublisher::publish);
-            EVENTS.remove();
-        }
-    }
-
-    /**
-     * 清除延迟的事件
-     */
-    public static void clearEvents() {
-        EVENTS.remove();
     }
 
     /**

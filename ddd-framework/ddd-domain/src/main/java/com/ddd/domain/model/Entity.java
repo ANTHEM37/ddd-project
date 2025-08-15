@@ -25,7 +25,5 @@ public abstract class Entity<ID> {
         Assert.notNull(id, "实体ID不能为空");
         this.id = id;
     }
-
-    // Lombok @Getter, @EqualsAndHashCode, @ToString 已自动生成相关方法
-    // @EqualsAndHashCode(onlyExplicitlyIncluded = true) 确保只基于ID进行相等性比较
+    
 }
