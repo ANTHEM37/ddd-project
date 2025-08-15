@@ -142,12 +142,10 @@ public final class Assert {
         }
     }
 
+    // ========== 编排专用断言方法 ==========
+    
     /**
-     * 断言字符串不为空，否则抛出编排异常
-     *
-     * @param text    字符串
-     * @param message 异常消息
-     * @throws OrchestrationException 当字符串为null或空时
+     * 编排断言：字符串不为空
      */
     public static void orchestrationHasText(String text, String message) {
         if (text == null || text.trim().isEmpty()) {
@@ -156,11 +154,7 @@ public final class Assert {
     }
 
     /**
-     * 断言对象不为null，否则抛出编排异常
-     *
-     * @param object  对象
-     * @param message 异常消息
-     * @throws OrchestrationException 当对象为null时
+     * 编排断言：对象不为null
      */
     public static void orchestrationNotNull(Object object, String message) {
         if (object == null) {
@@ -169,11 +163,7 @@ public final class Assert {
     }
 
     /**
-     * 断言表达式为真，否则抛出编排异常
-     *
-     * @param expression 表达式
-     * @param message    异常消息
-     * @throws OrchestrationException 当表达式为false时
+     * 编排断言：表达式为真
      */
     public static void orchestrationIsTrue(boolean expression, String message) {
         if (!expression) {
@@ -182,11 +172,7 @@ public final class Assert {
     }
 
     /**
-     * 断言表达式为假，否则抛出编排异常
-     *
-     * @param expression 表达式
-     * @param message    异常消息
-     * @throws OrchestrationException 当表达式为true时
+     * 编排断言：表达式为假
      */
     public static void orchestrationIsFalse(boolean expression, String message) {
         if (expression) {
@@ -195,13 +181,41 @@ public final class Assert {
     }
 
     /**
-     * 直接抛出编排异常
-     *
-     * @param message 异常消息
-     * @throws OrchestrationException 编排异常
+     * 编排断言：直接失败
      */
     public static void orchestrationFail(String message) {
         throw new OrchestrationException(message);
+    }
+
+    // ========== 通用断言增强方法 ==========
+    
+    /**
+     * 断言字符串匹配正则表达式
+     */
+    public static void matches(String text, String regex, String message) {
+        hasText(text, message);
+        if (!text.matches(regex)) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言对象类型正确
+     */
+    public static void isInstanceOf(Object object, Class<?> expectedType, String message) {
+        notNull(object, message);
+        if (!expectedType.isInstance(object)) {
+            throw new BusinessException(message);
+        }
+    }
+
+    /**
+     * 断言两个对象相等
+     */
+    public static void equals(Object expected, Object actual, String message) {
+        if (!java.util.Objects.equals(expected, actual)) {
+            throw new BusinessException(message);
+        }
     }
 
     /**

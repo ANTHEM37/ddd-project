@@ -91,6 +91,48 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
 
     /**
      * 添加删除领域事件
+     * 子类必须实现此方法来发布相应的删除事件
      */
-    abstract void addDeletedDomainEvent();
+    protected abstract void addDeletedDomainEvent();
+
+    /**
+     * 检查聚合是否可以被删除
+     * 子类可以重写此方法来实现删除前的业务规则检查
+     */
+    protected void checkCanBeRemoved() {
+        // 默认实现为空，子类可以重写
+    }
+
+    /**
+     * 安全删除聚合（带业务规则检查）
+     */
+    public final void safeRemove() {
+        checkCanBeRemoved();
+        markAsRemoved();
+    }
+
+    /**
+     * 获取聚合的业务标识
+     * 用于日志和调试，子类可以重写提供更有意义的标识
+     */
+    public String getBusinessIdentifier() {
+        return getClass().getSimpleName() + ":" + getId();
+    }
+
+    /**
+     * 检查聚合状态是否有效
+     * 子类应该重写此方法来验证聚合的业务不变性
+     */
+    protected void validateInvariants() {
+        // 默认实现为空，子类应该重写
+    }
+
+    /**
+     * 应用业务操作后的统一处理
+     * 包括不变性检查和版本递增
+     */
+    protected final void afterBusinessOperation() {
+        validateInvariants();
+        incrementVersion();
+    }
 }
