@@ -1,4 +1,4 @@
-package com.ddd.application.config;
+package com.ddd.infrastructure.config;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +33,15 @@ public class AsyncExecutorConfig {
     private ExecutorProperties query = new ExecutorProperties();
 
     /**
+     * 命令线程池配置
+     */
+    private ExecutorProperties command = new ExecutorProperties();
+
+
+    /**
      * 事件线程池配置
      */
     private ExecutorProperties event = new ExecutorProperties();
-
-    /**
-     * 任务线程池配置
-     */
-    private ExecutorProperties task = new ExecutorProperties();
 
     /**
      * 查询处理专用线程池
@@ -104,29 +105,29 @@ public class AsyncExecutorConfig {
      * 通用任务专用线程池
      * 用于处理各种通用异步任务，采用平衡配置
      */
-    @Bean("taskExecutor")
-    public Executor taskExecutor() {
+    @Bean("commandExecutor")
+    public Executor commandExecutor() {
         // 默认配置：平衡型
-        if (task.getCorePoolSizeMultiplier() <= 0) {
-            task.setCorePoolSizeMultiplier(1.0); // 默认为CPU核心数
+        if (command.getCorePoolSizeMultiplier() <= 0) {
+            command.setCorePoolSizeMultiplier(1.0); // 默认为CPU核心数
         }
-        if (task.getMaxPoolSizeMultiplier() <= 0) {
-            task.setMaxPoolSizeMultiplier(1.5); // 默认为CPU核心数 * 1.5
+        if (command.getMaxPoolSizeMultiplier() <= 0) {
+            command.setMaxPoolSizeMultiplier(1.5); // 默认为CPU核心数 * 1.5
         }
-        if (task.getQueueCapacity() <= 0) {
-            task.setQueueCapacity(200); // 默认队列容量
+        if (command.getQueueCapacity() <= 0) {
+            command.setQueueCapacity(200); // 默认队列容量
         }
-        if (task.getKeepAliveSeconds() <= 0) {
-            task.setKeepAliveSeconds(120); // 默认空闲时间
+        if (command.getKeepAliveSeconds() <= 0) {
+            command.setKeepAliveSeconds(120); // 默认空闲时间
         }
-        if (task.getAwaitTerminationSeconds() <= 0) {
-            task.setAwaitTerminationSeconds(45); // 默认等待时间
+        if (command.getAwaitTerminationSeconds() <= 0) {
+            command.setAwaitTerminationSeconds(45); // 默认等待时间
         }
-        if (task.getRejectedExecutionPolicy() == null) {
-            task.setRejectedExecutionPolicy("CALLER_RUNS"); // 默认拒绝策略
+        if (command.getRejectedExecutionPolicy() == null) {
+            command.setRejectedExecutionPolicy("CALLER_RUNS"); // 默认拒绝策略
         }
 
-        return createExecutor(task, "Task");
+        return createExecutor(command, "command");
     }
 
     /**

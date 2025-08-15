@@ -1,13 +1,11 @@
 package com.ddd.application.bus;
 
 import com.ddd.common.assertion.Assert;
-import com.ddd.common.util.GenericTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -36,11 +34,6 @@ public abstract class AbstractMessageBus<M, H> {
     protected abstract Executor getExecutor();
 
     /**
-     * 获取处理器类型
-     */
-    protected abstract Class<H> getHandlerType();
-
-    /**
      * 获取消息类型名称（用于日志）
      */
     protected abstract String getMessageTypeName();
@@ -58,7 +51,6 @@ public abstract class AbstractMessageBus<M, H> {
     /**
      * 发送消息并获取结果
      */
-    @SuppressWarnings("unchecked")
     public <R> R send(M message) {
         Assert.notNull(message, getMessageTypeName() + "不能为空");
 
@@ -99,32 +91,5 @@ public abstract class AbstractMessageBus<M, H> {
     /**
      * 查找消息对应的处理器
      */
-    @SuppressWarnings("unchecked")
-    protected H findHandler(M message) {
-        Class<?> messageClass = message.getClass();
-
-        // 先从缓存中查找
-        H cachedHandler = handlerCache.get(messageClass);
-        if (cachedHandler != null) {
-            log.debug("从缓存中找到{}处理器: {}", getMessageTypeName(), messageClass.getSimpleName());
-            return cachedHandler;
-        }
-
-        // 从Spring容器中查找
-        Map<String, H> handlers = applicationContext.getBeansOfType(getHandlerType());
-        log.debug("在Spring容器中搜索{}处理器，共找到 {} 个处理器", getMessageTypeName(), handlers.size());
-
-        Optional<H> handlerOpt = GenericTypeResolver.findImplementation(handlers.values(), getHandlerType(), messageClass);
-
-        if (handlerOpt.isPresent()) {
-            H handler = handlerOpt.get();
-            // 缓存处理器
-            handlerCache.put(messageClass, handler);
-            log.debug("找到并缓存{}处理器: {} -> {}", getMessageTypeName(), messageClass.getSimpleName(), handler.getClass().getSimpleName());
-            return handler;
-        }
-
-        log.warn("未找到{}处理器: {}", getMessageTypeName(), messageClass.getSimpleName());
-        return null;
-    }
+    protected abstract H findHandler(M message);
 }

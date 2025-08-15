@@ -4,8 +4,7 @@ import com.ddd.application.command.ICommand;
 import com.ddd.application.command.ICommandBus;
 import com.ddd.application.query.IQuery;
 import com.ddd.application.query.IQueryBus;
-
-import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 门面基类
@@ -16,10 +15,10 @@ import javax.annotation.Resource;
  */
 public abstract class AbstractBaseFacade {
 
-    @Resource
+    @Autowired
     protected ICommandBus commandBus;
 
-    @Resource
+    @Autowired
     protected IQueryBus queryBus;
 
     /**

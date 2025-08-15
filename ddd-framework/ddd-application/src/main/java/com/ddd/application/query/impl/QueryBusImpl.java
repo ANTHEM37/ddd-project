@@ -4,13 +4,12 @@ import com.ddd.application.bus.AbstractMessageBus;
 import com.ddd.application.query.IQuery;
 import com.ddd.application.query.IQueryBus;
 import com.ddd.application.query.IQueryHandler;
-import com.ddd.common.util.GenericTypeResolver;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -22,37 +21,23 @@ import java.util.concurrent.Executor;
  * @date 2025/8/14 09:17:53
  */
 @Slf4j
-@Component
-public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus {
+@AllArgsConstructor
+public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus, InitializingBean {
 
-    @Autowired
-    @Qualifier("queryExecutor")
-    private Executor queryExecutor;
+    @Getter
+    private Executor executor;
+
+    @Getter
+    private final String messageTypeName = "查询";
 
     @Override
-    @SuppressWarnings("unchecked")
     public <R> R send(IQuery<R> query) {
-        return (R) super.send(query);
+        return super.send(query);
     }
 
     @Override
     public <R> CompletableFuture<R> sendAsync(IQuery<R> query) {
         return super.sendAsync(query);
-    }
-
-    @Override
-    protected Executor getExecutor() {
-        return queryExecutor;
-    }
-
-    @Override
-    protected Class<IQueryHandler<?, ?>> getHandlerType() {
-        return (Class) IQueryHandler.class;
-    }
-
-    @Override
-    protected String getMessageTypeName() {
-        return "查询";
     }
 
     @Override
@@ -66,7 +51,47 @@ public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?,
         return (R) ((IQueryHandler<IQuery<?>, ?>) handler).handle(message);
     }
 
-    protected boolean isHandlerForMessage(IQueryHandler<?, ?> handler, Class<?> messageClass) {
-        return GenericTypeResolver.findImplementation(Collections.singletonList(handler), IQueryHandler.class, messageClass).isPresent();
+    @SuppressWarnings("unchecked")
+    @Override
+    protected IQueryHandler<?, ?> findHandler(IQuery<?> message) {
+        //优先从handlerCache取
+        Class<? extends IQuery> messageClazz = message.getClass();
+        IQueryHandler<?, ?> handler = handlerCache.get(messageClazz);
+        if (handler != null) {
+            return handler;
+        }
+        applicationContext.getBeansOfType(IQueryHandler.class).values().stream().filter(handlerTemp -> handlerTemp.getSupportedQueryType().isAssignableFrom(messageClazz)).findFirst().ifPresent(handlerTemp -> {
+            handlerCache.put(messageClazz, handlerTemp);
+        });
+        return handlerCache.get(messageClazz);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("开始初始化查询处理器缓存...");
+        
+        Map<String, IQueryHandler> handlers = applicationContext.getBeansOfType(IQueryHandler.class);
+        int registeredCount = 0;
+        
+        for (Map.Entry<String, IQueryHandler> entry : handlers.entrySet()) {
+            String beanName = entry.getKey();
+            IQueryHandler<?, ?> handler = entry.getValue();
+            
+            try {
+                Class<?> supportedType = handler.getSupportedQueryType();
+                if (supportedType != null) {
+                    handlerCache.put(supportedType, handler);
+                    registeredCount++;
+                    log.debug("注册查询处理器: {} -> {}", supportedType.getSimpleName(), beanName);
+                } else {
+                    log.warn("查询处理器 {} 返回的支持类型为null，跳过注册", beanName);
+                }
+            } catch (Exception e) {
+                log.error("注册查询处理器 {} 失败: {}", beanName, e.getMessage(), e);
+                throw new IllegalStateException("查询处理器注册失败: " + beanName, e);
+            }
+        }
+        
+        log.info("查询处理器缓存初始化完成，共注册 {} 个处理器", registeredCount);
     }
 }

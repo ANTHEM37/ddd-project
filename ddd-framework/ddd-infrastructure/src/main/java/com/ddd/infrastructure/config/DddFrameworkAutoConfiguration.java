@@ -1,11 +1,23 @@
 package com.ddd.infrastructure.config;
 
+import com.ddd.application.command.ICommandBus;
+import com.ddd.application.command.impl.CommandBusImpl;
+import com.ddd.application.query.IQueryBus;
+import com.ddd.application.query.impl.QueryBusImpl;
+import com.ddd.domain.event.DomainEventPublisher;
+import com.ddd.infrastructure.messaging.event.SpringDomainEventPublisher;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.util.concurrent.Executor;
 
 /**
  * DDD框架自动配置类
@@ -21,5 +33,32 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @ComponentScan(basePackages = {"com.ddd.application", "com.ddd.domain", "com.ddd.infrastructure"})
 public class DddFrameworkAutoConfiguration {
+
+    /**
+     * 命令总线
+     */
+    @Bean
+    @ConditionalOnMissingBean(ICommandBus.class)
+    public ICommandBus commandBus(@Qualifier("commandExecutor") Executor commandExecutor) {
+        return new CommandBusImpl(commandExecutor);
+    }
+
+    /**
+     * 查询总线
+     */
+    @Bean
+    @ConditionalOnMissingBean(IQueryBus.class)
+    public IQueryBus queryBus(@Qualifier("queryExecutor") Executor queryExecutor) {
+        return new QueryBusImpl(queryExecutor);
+    }
+
+    /**
+     * 领域事件发布器
+     */
+    @Bean
+    @ConditionalOnMissingBean(DomainEventPublisher.EventPublisher.class)
+    public DomainEventPublisher.EventPublisher domainEventPublisher(ApplicationEventPublisher applicationEventPublisher, @Qualifier("eventExecutor") Executor eventExecutor) {
+        return new SpringDomainEventPublisher(applicationEventPublisher, eventExecutor);
+    }
 
 }

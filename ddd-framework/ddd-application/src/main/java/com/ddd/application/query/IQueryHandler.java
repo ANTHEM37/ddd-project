@@ -14,4 +14,11 @@ public interface IQueryHandler<Q extends IQuery<R>, R> {
      * 处理查询
      */
     R handle(Q query);
+
+    /**
+     * 获取支持的命令类型
+     *
+     * @return 命令类型
+     */
+    Class<Q> getSupportedQueryType();
 }

@@ -4,10 +4,7 @@ import com.ddd.common.assertion.Assert;
 import com.ddd.domain.event.DomainEventPublisher;
 import com.ddd.domain.event.IDomainEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
 
@@ -19,16 +16,14 @@ import java.util.concurrent.Executor;
  * @date 2025/8/14 16:15:47
  */
 @Slf4j
-@Component
 public class SpringDomainEventPublisher implements DomainEventPublisher.EventPublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
-    @Autowired
-    @Qualifier("eventExecutor")
     private Executor eventExecutor;
 
-    public SpringDomainEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+    public SpringDomainEventPublisher(ApplicationEventPublisher applicationEventPublisher, Executor eventExecutor) {
         this.applicationEventPublisher = applicationEventPublisher;
+        this.eventExecutor = eventExecutor;
         // 将自己注册为领域层的事件发布器实现
         DomainEventPublisher.setEventPublisher(this);
     }
