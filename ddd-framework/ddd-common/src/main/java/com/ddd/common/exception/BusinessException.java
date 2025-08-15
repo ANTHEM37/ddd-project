@@ -1,6 +1,7 @@
 package com.ddd.common.exception;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 业务异常
@@ -9,6 +10,7 @@ import lombok.Getter;
  * @author anthem37
  * @date 2025/8/13 17:28:53
  */
+@Setter
 @Getter
 public class BusinessException extends RuntimeException {
 
@@ -16,6 +18,8 @@ public class BusinessException extends RuntimeException {
 
     /**
      * 错误码
+     * -- SETTER --
+     * 设置错误码
      */
     private String errorCode;
 
@@ -61,12 +65,4 @@ public class BusinessException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    /**
-     * 设置错误码
-     *
-     * @param errorCode 错误码
-     */
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
 }

@@ -1,9 +1,9 @@
 package com.ddd.infrastructure.config;
 
 import com.ddd.application.command.ICommandBus;
-import com.ddd.application.command.impl.CommandBusImpl;
+import com.ddd.application.command.impl.CommandBus;
 import com.ddd.application.query.IQueryBus;
-import com.ddd.application.query.impl.QueryBusImpl;
+import com.ddd.application.query.impl.QueryBus;
 import com.ddd.domain.event.DomainEventPublisher;
 import com.ddd.infrastructure.messaging.event.SpringDomainEventPublisher;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class DddFrameworkAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ICommandBus.class)
     public ICommandBus commandBus(@Qualifier("commandExecutor") Executor commandExecutor) {
-        return new CommandBusImpl(commandExecutor);
+        return new CommandBus(commandExecutor);
     }
 
     /**
@@ -49,7 +49,7 @@ public class DddFrameworkAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(IQueryBus.class)
     public IQueryBus queryBus(@Qualifier("queryExecutor") Executor queryExecutor) {
-        return new QueryBusImpl(queryExecutor);
+        return new QueryBus(queryExecutor);
     }
 
     /**

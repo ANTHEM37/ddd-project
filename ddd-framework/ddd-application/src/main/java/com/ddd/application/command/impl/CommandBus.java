@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
  */
 @Slf4j
 @AllArgsConstructor
-public class CommandBusImpl extends AbstractMessageBus<ICommand<?>, ICommandHandler<?, ?>> implements ICommandBus, InitializingBean {
+public class CommandBus extends AbstractMessageBus<ICommand<?>, ICommandHandler<?, ?>> implements ICommandBus, InitializingBean {
 
     @Getter
     private Executor executor;
@@ -89,7 +89,7 @@ public class CommandBusImpl extends AbstractMessageBus<ICommand<?>, ICommandHand
                 }
             } catch (Exception e) {
                 log.error("注册命令处理器 {} 失败: {}", beanName, e.getMessage(), e);
-                throw new IllegalStateException("命令处理器注册失败: " + beanName, e);
+                throw e;
             }
         }
 

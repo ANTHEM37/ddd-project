@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
  */
 @Slf4j
 @AllArgsConstructor
-public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus, InitializingBean {
+public class QueryBus extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus, InitializingBean {
 
     @Getter
     private Executor executor;
@@ -69,14 +69,14 @@ public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?,
     @Override
     public void afterPropertiesSet() throws Exception {
         log.info("开始初始化查询处理器缓存...");
-        
+
         Map<String, IQueryHandler> handlers = applicationContext.getBeansOfType(IQueryHandler.class);
         int registeredCount = 0;
-        
+
         for (Map.Entry<String, IQueryHandler> entry : handlers.entrySet()) {
             String beanName = entry.getKey();
             IQueryHandler<?, ?> handler = entry.getValue();
-            
+
             try {
                 Class<?> supportedType = handler.getSupportedQueryType();
                 if (supportedType != null) {
@@ -88,10 +88,10 @@ public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?,
                 }
             } catch (Exception e) {
                 log.error("注册查询处理器 {} 失败: {}", beanName, e.getMessage(), e);
-                throw new IllegalStateException("查询处理器注册失败: " + beanName, e);
+                throw e;
             }
         }
-        
+
         log.info("查询处理器缓存初始化完成，共注册 {} 个处理器", registeredCount);
     }
 }
