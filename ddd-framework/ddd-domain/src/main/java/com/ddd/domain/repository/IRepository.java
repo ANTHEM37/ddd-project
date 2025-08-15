@@ -14,7 +14,7 @@ import java.util.Optional;
  * @author anthem37
  * @date 2025/8/14 14:05:38
  */
-public interface Repository<T extends AggregateRoot<ID>, ID> {
+public interface IRepository<T extends AggregateRoot<ID>, ID> {
 
     /**
      * 根据ID查找聚合

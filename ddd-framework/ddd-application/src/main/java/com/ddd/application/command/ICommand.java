@@ -8,7 +8,7 @@ package com.ddd.application.command;
  * @author anthem37
  * @date 2025/8/14 10:23:18
  */
-public interface Command<R> {
+public interface ICommand<R> {
 
     /**
      * 命令验证

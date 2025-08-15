@@ -1,8 +1,8 @@
 package com.ddd.infrastructure.messaging.event;
 
 import com.ddd.common.assertion.Assert;
-import com.ddd.domain.event.DomainEvent;
-import com.ddd.domain.event.EventHandler;
+import com.ddd.domain.event.IDomainEvent;
+import com.ddd.domain.event.IEventHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.event.TransactionPhase;
@@ -14,12 +14,12 @@ import java.util.function.Consumer;
 /**
  * 事件处理器抽象基类
  * 提供同步和异步事件处理的标准实现
- * 
+ *
  * @author anthem37
  * @date 2025/8/14 12:18:53
  */
 @Slf4j
-public abstract class AbstractEventHandler<T extends DomainEvent> implements EventHandler<T> {
+public abstract class AbstractEventHandler<T extends IDomainEvent> implements IEventHandler<T> {
 
     /**
      * 处理事件

@@ -7,7 +7,7 @@ package com.ddd.common.model;
  * @author anthem37
  * @date 2025/8/14 12:37:19
  */
-public interface BusinessRule {
+public interface IBusinessRule {
 
     /**
      * 检查业务规则是否满足

@@ -11,6 +11,6 @@ package com.ddd.domain.service;
  * @author anthem37
  * @date 2025/8/13 14:52:19
  */
-public interface DomainService {
+public interface IDomainService {
 
 }

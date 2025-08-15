@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
  * @author anthem37
  * @date 2025/8/13 18:42:15
  */
-public interface QueryBus {
+public interface IQueryBus {
 
     /**
      * 发送查询并执行
@@ -18,7 +18,7 @@ public interface QueryBus {
      * @param <R>   查询结果类型
      * @return 查询结果
      */
-    <R> R send(Query<R> query);
+    <R> R send(IQuery<R> query);
 
     /**
      * 异步发送查询
@@ -27,7 +27,7 @@ public interface QueryBus {
      * @param <R>   查询结果类型
      * @return 包含查询结果的CompletableFuture
      */
-    <R> CompletableFuture<R> sendAsync(Query<R> query);
+    <R> CompletableFuture<R> sendAsync(IQuery<R> query);
 
     /**
      * 获取已注册的处理器数量

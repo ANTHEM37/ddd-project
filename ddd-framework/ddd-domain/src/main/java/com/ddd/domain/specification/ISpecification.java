@@ -8,7 +8,7 @@ package com.ddd.domain.specification;
  * @author anthem37
  * @date 2025/8/14 08:45:16
  */
-public interface Specification<T> {
+public interface ISpecification<T> {
 
     /**
      * 检查实体是否满足规约条件
@@ -24,7 +24,7 @@ public interface Specification<T> {
      * @param other 另一个规约
      * @return 组合后的规约
      */
-    default Specification<T> and(Specification<T> other) {
+    default ISpecification<T> and(ISpecification<T> other) {
         return new AndSpecification<>(this, other);
     }
 
@@ -34,7 +34,7 @@ public interface Specification<T> {
      * @param other 另一个规约
      * @return 组合后的规约
      */
-    default Specification<T> or(Specification<T> other) {
+    default ISpecification<T> or(ISpecification<T> other) {
         return new OrSpecification<>(this, other);
     }
 
@@ -43,18 +43,18 @@ public interface Specification<T> {
      *
      * @return 取反后的规约
      */
-    default Specification<T> not() {
+    default ISpecification<T> not() {
         return new NotSpecification<>(this);
     }
 
     /**
      * 与规约实现
      */
-    class AndSpecification<T> implements Specification<T> {
-        private final Specification<T> left;
-        private final Specification<T> right;
+    class AndSpecification<T> implements ISpecification<T> {
+        private final ISpecification<T> left;
+        private final ISpecification<T> right;
 
-        public AndSpecification(Specification<T> left, Specification<T> right) {
+        public AndSpecification(ISpecification<T> left, ISpecification<T> right) {
             this.left = left;
             this.right = right;
         }
@@ -68,11 +68,11 @@ public interface Specification<T> {
     /**
      * 或规约实现
      */
-    class OrSpecification<T> implements Specification<T> {
-        private final Specification<T> left;
-        private final Specification<T> right;
+    class OrSpecification<T> implements ISpecification<T> {
+        private final ISpecification<T> left;
+        private final ISpecification<T> right;
 
-        public OrSpecification(Specification<T> left, Specification<T> right) {
+        public OrSpecification(ISpecification<T> left, ISpecification<T> right) {
             this.left = left;
             this.right = right;
         }
@@ -86,10 +86,10 @@ public interface Specification<T> {
     /**
      * 非规约实现
      */
-    class NotSpecification<T> implements Specification<T> {
-        private final Specification<T> specification;
+    class NotSpecification<T> implements ISpecification<T> {
+        private final ISpecification<T> specification;
 
-        public NotSpecification(Specification<T> specification) {
+        public NotSpecification(ISpecification<T> specification) {
             this.specification = specification;
         }
 

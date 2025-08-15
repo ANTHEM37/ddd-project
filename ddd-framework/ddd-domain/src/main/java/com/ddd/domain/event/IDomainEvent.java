@@ -12,7 +12,7 @@ import java.util.UUID;
  * @author anthem37
  * @date 2025/8/13 20:15:42
  */
-public interface DomainEvent {
+public interface IDomainEvent {
 
     /**
      * 获取事件ID

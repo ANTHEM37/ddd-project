@@ -2,7 +2,7 @@ package com.ddd.common.assertion;
 
 import com.ddd.common.exception.BusinessException;
 import com.ddd.common.exception.BusinessRuleViolationException;
-import com.ddd.common.model.BusinessRule;
+import com.ddd.common.model.IBusinessRule;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 /**
  * 断言工具类
  * 用于统一管理业务异常的抛出
- * 
+ *
  * @author anthem37
  * @date 2025/8/13 16:58:42
  */
@@ -198,7 +198,7 @@ public final class Assert {
      * @param rule 业务规则
      * @throws BusinessRuleViolationException 当规则不满足时
      */
-    public static void satisfies(BusinessRule rule) {
+    public static void satisfies(IBusinessRule rule) {
         if (!rule.isSatisfied()) {
             throw new BusinessRuleViolationException(rule);
         }
@@ -210,8 +210,8 @@ public final class Assert {
      * @param rules 业务规则数组
      * @throws BusinessRuleViolationException 当任一规则不满足时
      */
-    public static void satisfiesAll(BusinessRule... rules) {
-        for (BusinessRule rule : rules) {
+    public static void satisfiesAll(IBusinessRule... rules) {
+        for (IBusinessRule rule : rules) {
             satisfies(rule);
         }
     }

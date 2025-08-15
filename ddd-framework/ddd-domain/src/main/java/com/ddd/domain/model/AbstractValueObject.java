@@ -8,11 +8,11 @@ import java.util.Arrays;
  * 提供通用的相等性比较和哈希码计算
  * <p>
  * 子类应该显式实现 getEqualityComponents() 方法，明确指定哪些属性参与相等性比较
- * 
+ *
  * @author anthem37
  * @date 2025/8/13 15:12:36
  */
-public abstract class AbstractValueObject implements ValueObject, Serializable {
+public abstract class AbstractValueObject implements IValueObject, Serializable {
 
     private static final long serialVersionUID = 1L;
 

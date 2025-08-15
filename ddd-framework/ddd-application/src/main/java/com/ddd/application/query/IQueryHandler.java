@@ -8,7 +8,7 @@ package com.ddd.application.query;
  * @author anthem37
  * @date 2025/8/14 11:32:45
  */
-public interface QueryHandler<Q extends Query<R>, R> {
+public interface IQueryHandler<Q extends IQuery<R>, R> {
 
     /**
      * 处理查询

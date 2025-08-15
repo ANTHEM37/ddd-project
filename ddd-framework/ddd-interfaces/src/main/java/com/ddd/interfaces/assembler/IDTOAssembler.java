@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * @author anthem37
  * @date 2025/8/14 11:15:27
  */
-public interface DtoAssembler<D, E> {
+public interface IDTOAssembler<D, E> {
 
     /**
      * 将领域对象转换为DTO

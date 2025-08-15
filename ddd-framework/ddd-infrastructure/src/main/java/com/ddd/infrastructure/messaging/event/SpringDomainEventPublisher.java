@@ -1,8 +1,8 @@
 package com.ddd.infrastructure.messaging.event;
 
 import com.ddd.common.assertion.Assert;
-import com.ddd.domain.event.DomainEvent;
 import com.ddd.domain.event.DomainEventPublisher;
+import com.ddd.domain.event.IDomainEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,7 +34,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher.EventPub
     }
 
     @Override
-    public void publish(DomainEvent event) {
+    public void publish(IDomainEvent event) {
         if (event == null) {
             log.warn("尝试发布空事件");
             return;
@@ -49,7 +49,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher.EventPub
      *
      * @param event 要发布的事件
      */
-    private void publishEventInternal(DomainEvent event) {
+    private void publishEventInternal(IDomainEvent event) {
         boolean async = event.isAsync();
         try {
             if (async) {

@@ -1,6 +1,9 @@
-package com.ddd.application.query;
+package com.ddd.application.query.impl;
 
 import com.ddd.application.bus.AbstractMessageBus;
+import com.ddd.application.query.IQuery;
+import com.ddd.application.query.IQueryBus;
+import com.ddd.application.query.IQueryHandler;
 import com.ddd.common.util.GenericTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +23,7 @@ import java.util.concurrent.Executor;
  */
 @Slf4j
 @Component
-public class QueryBusImpl extends AbstractMessageBus<Query<?>, QueryHandler<?, ?>> implements QueryBus {
+public class QueryBusImpl extends AbstractMessageBus<IQuery<?>, IQueryHandler<?, ?>> implements IQueryBus {
 
     @Autowired
     @Qualifier("queryExecutor")
@@ -28,12 +31,12 @@ public class QueryBusImpl extends AbstractMessageBus<Query<?>, QueryHandler<?, ?
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> R send(Query<R> query) {
+    public <R> R send(IQuery<R> query) {
         return (R) super.send(query);
     }
 
     @Override
-    public <R> CompletableFuture<R> sendAsync(Query<R> query) {
+    public <R> CompletableFuture<R> sendAsync(IQuery<R> query) {
         return super.sendAsync(query);
     }
 
@@ -43,8 +46,8 @@ public class QueryBusImpl extends AbstractMessageBus<Query<?>, QueryHandler<?, ?
     }
 
     @Override
-    protected Class<QueryHandler<?, ?>> getHandlerType() {
-        return (Class) QueryHandler.class;
+    protected Class<IQueryHandler<?, ?>> getHandlerType() {
+        return (Class) IQueryHandler.class;
     }
 
     @Override
@@ -53,17 +56,17 @@ public class QueryBusImpl extends AbstractMessageBus<Query<?>, QueryHandler<?, ?
     }
 
     @Override
-    protected boolean isValid(Query<?> message) {
+    protected boolean isValid(IQuery<?> message) {
         return message.isValid();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected <R> R handleMessage(QueryHandler<?, ?> handler, Query<?> message) {
-        return (R) ((QueryHandler<Query<?>, ?>) handler).handle(message);
+    protected <R> R handleMessage(IQueryHandler<?, ?> handler, IQuery<?> message) {
+        return (R) ((IQueryHandler<IQuery<?>, ?>) handler).handle(message);
     }
 
-    protected boolean isHandlerForMessage(QueryHandler<?, ?> handler, Class<?> messageClass) {
-        return GenericTypeResolver.findImplementation(Collections.singletonList(handler), QueryHandler.class, messageClass).isPresent();
+    protected boolean isHandlerForMessage(IQueryHandler<?, ?> handler, Class<?> messageClass) {
+        return GenericTypeResolver.findImplementation(Collections.singletonList(handler), IQueryHandler.class, messageClass).isPresent();
     }
 }

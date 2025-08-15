@@ -8,7 +8,7 @@ package com.ddd.application.command;
  * @author anthem37
  * @date 2025/8/14 08:17:35
  */
-public interface CommandHandler<C extends Command<R>, R> {
+public interface ICommandHandler<C extends ICommand<R>, R> {
 
     /**
      * 处理命令

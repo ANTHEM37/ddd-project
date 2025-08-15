@@ -1,11 +1,11 @@
 package com.ddd.infrastructure.persistence.repository;
 
 import com.ddd.common.assertion.Assert;
-import com.ddd.domain.event.DomainEvent;
 import com.ddd.domain.event.DomainEventPublisher;
+import com.ddd.domain.event.IDomainEvent;
 import com.ddd.domain.model.AggregateRoot;
-import com.ddd.domain.repository.Repository;
-import com.ddd.domain.specification.Specification;
+import com.ddd.domain.repository.IRepository;
+import com.ddd.domain.specification.ISpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @date 2025/8/14 16:52:19
  */
 @Slf4j
-public abstract class BaseRepository<T extends AggregateRoot<ID>, ID> implements Repository<T, ID> {
+public abstract class AbstractBaseRepository<T extends AggregateRoot<ID>, ID> implements IRepository<T, ID> {
 
     @Override
     @Transactional
@@ -84,7 +84,7 @@ public abstract class BaseRepository<T extends AggregateRoot<ID>, ID> implements
      * @param specification 查询规约
      * @return 满足条件的实体列表
      */
-    public List<T> findBySpecification(Specification<T> specification) {
+    public List<T> findBySpecification(ISpecification<T> specification) {
         List<T> allEntities = findAll();
         return allEntities.stream()
                 .filter(specification::isSatisfiedBy)
@@ -97,7 +97,7 @@ public abstract class BaseRepository<T extends AggregateRoot<ID>, ID> implements
      * @param specification 查询规约
      * @return true if exists
      */
-    public boolean exists(Specification<T> specification) {
+    public boolean exists(ISpecification<T> specification) {
         return !findBySpecification(specification).isEmpty();
     }
 
@@ -107,7 +107,7 @@ public abstract class BaseRepository<T extends AggregateRoot<ID>, ID> implements
      * @param specification 查询规约
      * @return 实体数量
      */
-    public long count(Specification<T> specification) {
+    public long count(ISpecification<T> specification) {
         return findBySpecification(specification).size();
     }
 
@@ -142,8 +142,8 @@ public abstract class BaseRepository<T extends AggregateRoot<ID>, ID> implements
      * 发布领域事件
      */
     protected void publishDomainEvents(T aggregate) {
-        List<DomainEvent> events = aggregate.getDomainEvents();
-        for (DomainEvent event : events) {
+        List<IDomainEvent> events = aggregate.getDomainEvents();
+        for (IDomainEvent event : events) {
             DomainEventPublisher.publish(event);
         }
         aggregate.clearDomainEvents();

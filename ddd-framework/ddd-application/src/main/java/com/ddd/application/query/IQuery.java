@@ -8,7 +8,7 @@ package com.ddd.application.query;
  * @author anthem37
  * @date 2025/8/13 19:24:56
  */
-public interface Query<R> {
+public interface IQuery<R> {
 
     /**
      * 验证查询是否有效

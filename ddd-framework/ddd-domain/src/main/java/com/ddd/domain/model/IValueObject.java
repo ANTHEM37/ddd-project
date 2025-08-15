@@ -12,7 +12,7 @@ package com.ddd.domain.model;
  * @author anthem37
  * @date 2025/8/14 13:28:45
  */
-public interface ValueObject {
+public interface IValueObject {
 
     /**
      * 值对象必须实现equals方法

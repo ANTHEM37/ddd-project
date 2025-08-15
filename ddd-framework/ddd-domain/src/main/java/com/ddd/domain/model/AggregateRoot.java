@@ -1,8 +1,8 @@
 package com.ddd.domain.model;
 
 import com.ddd.common.assertion.Assert;
-import com.ddd.common.model.BusinessRule;
-import com.ddd.domain.event.DomainEvent;
+import com.ddd.common.model.IBusinessRule;
+import com.ddd.domain.event.IDomainEvent;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 public abstract class AggregateRoot<ID> extends Entity<ID> {
 
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
+    private final List<IDomainEvent> domainEvents = new ArrayList<>();
 
     @Getter
     private int version = 0;
@@ -35,14 +35,14 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
      * 检查业务规则
      * 如果规则不满足则抛出异常
      */
-    protected void checkRule(BusinessRule rule) {
+    protected void checkRule(IBusinessRule rule) {
         Assert.satisfies(rule);
     }
 
     /**
      * 批量检查业务规则
      */
-    protected void checkRules(BusinessRule... rules) {
+    protected void checkRules(IBusinessRule... rules) {
         Assert.satisfiesAll(rules);
     }
 
@@ -56,14 +56,14 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
     /**
      * 添加领域事件
      */
-    protected void addDomainEvent(DomainEvent event) {
+    protected void addDomainEvent(IDomainEvent event) {
         domainEvents.add(event);
     }
 
     /**
      * 获取所有领域事件（只读）
      */
-    public List<DomainEvent> getDomainEvents() {
+    public List<IDomainEvent> getDomainEvents() {
         return Collections.unmodifiableList(domainEvents);
     }
 
@@ -93,7 +93,7 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
      * 使用Lombok简化代码
      */
     @Getter
-    public static class AggregateRemovedEvent implements DomainEvent {
+    public static class AggregateRemovedEvent implements IDomainEvent {
         private final Object aggregateId;
 
         public AggregateRemovedEvent(Object aggregateId) {

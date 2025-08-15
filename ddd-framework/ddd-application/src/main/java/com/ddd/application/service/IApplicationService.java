@@ -11,6 +11,6 @@ package com.ddd.application.service;
  * @author anthem37
  * @date 2025/8/13 16:45:32
  */
-public interface ApplicationService {
+public interface IApplicationService {
 
 }

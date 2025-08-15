@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class DomainEventPublisher {
 
-    private static final ThreadLocal<List<DomainEvent>> EVENTS = new ThreadLocal<>();
+    private static final ThreadLocal<List<IDomainEvent>> EVENTS = new ThreadLocal<>();
     private static EventPublisher eventPublisher;
 
     /**
@@ -28,7 +28,7 @@ public class DomainEventPublisher {
     /**
      * 发布单个事件
      */
-    public static void publish(DomainEvent event) {
+    public static void publish(IDomainEvent event) {
         if (event == null) {
             return;
         }
@@ -43,8 +43,8 @@ public class DomainEventPublisher {
     /**
      * 延迟发布事件（在事务提交后）
      */
-    public static void publishAfterCommit(DomainEvent event) {
-        List<DomainEvent> events = EVENTS.get();
+    public static void publishAfterCommit(IDomainEvent event) {
+        List<IDomainEvent> events = EVENTS.get();
         if (events == null) {
             events = new ArrayList<>();
             EVENTS.set(events);
@@ -56,7 +56,7 @@ public class DomainEventPublisher {
      * 提交延迟的事件
      */
     public static void commitEvents() {
-        List<DomainEvent> events = EVENTS.get();
+        List<IDomainEvent> events = EVENTS.get();
         if (events != null && !events.isEmpty()) {
             // 逐个发布事件，而不是使用批量发布
             // 这样可以确保每个事件都被正确处理
@@ -81,6 +81,6 @@ public class DomainEventPublisher {
         /**
          * 发布领域事件
          */
-        void publish(DomainEvent event);
+        void publish(IDomainEvent event);
     }
 }

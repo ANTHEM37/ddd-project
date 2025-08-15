@@ -1,6 +1,6 @@
 package com.ddd.common.exception;
 
-import com.ddd.common.model.BusinessRule;
+import com.ddd.common.model.IBusinessRule;
 import lombok.Getter;
 
 /**
@@ -35,7 +35,7 @@ public class BusinessRuleViolationException extends BusinessException {
      *
      * @param rule 违反的业务规则
      */
-    public BusinessRuleViolationException(BusinessRule rule) {
+    public BusinessRuleViolationException(IBusinessRule rule) {
         super(rule.getMessage());
         this.ruleName = rule.getRuleName();
         setErrorCode("RULE_VIOLATION");

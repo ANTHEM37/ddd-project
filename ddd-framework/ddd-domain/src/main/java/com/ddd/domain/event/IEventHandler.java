@@ -7,7 +7,7 @@ package com.ddd.domain.event;
  * @author anthem37
  * @date 2025/8/14 10:12:36
  */
-public interface EventHandler<T extends DomainEvent> {
+public interface IEventHandler<T extends IDomainEvent> {
 
     /**
      * 处理事件

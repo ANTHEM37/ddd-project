@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
  * @author anthem37
  * @date 2025/8/14 10:45:18
  */
-public interface CommandBus {
+public interface ICommandBus {
 
     /**
      * 发送命令并执行
@@ -18,14 +18,14 @@ public interface CommandBus {
      * @param <R>     命令执行结果类型
      * @return 命令执行结果
      */
-    <R> R send(Command<R> command);
+    <R> R send(ICommand<R> command);
 
     /**
      * 异步发送命令
      *
      * @param command 要执行的命令
      */
-    <R> CompletableFuture<R> sendAsync(Command<R> command);
+    <R> CompletableFuture<R> sendAsync(ICommand<R> command);
 
     /**
      * 获取已注册的处理器数量
