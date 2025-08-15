@@ -2,6 +2,7 @@ package com.ddd.common.assertion;
 
 import com.ddd.common.exception.BusinessException;
 import com.ddd.common.exception.BusinessRuleViolationException;
+import com.ddd.common.exception.OrchestrationException;
 import com.ddd.common.model.IBusinessRule;
 
 import java.util.Collection;
@@ -142,19 +143,66 @@ public final class Assert {
     }
 
     /**
-     * 断言数值为正数，否则抛出业务异常
+     * 断言字符串不为空，否则抛出编排异常
      *
-     * @param number  数值
+     * @param text    字符串
      * @param message 异常消息
-     * @throws BusinessException 当数值小于等于0时
+     * @throws OrchestrationException 当字符串为null或空时
      */
-    public static void isPositive(Number number, String message) {
-        notNull(number, message);
-        if (number.doubleValue() <= 0) {
-            throw new BusinessException(message);
+    public static void orchestrationHasText(String text, String message) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new OrchestrationException(message);
         }
     }
 
+    /**
+     * 断言对象不为null，否则抛出编排异常
+     *
+     * @param object  对象
+     * @param message 异常消息
+     * @throws OrchestrationException 当对象为null时
+     */
+    public static void orchestrationNotNull(Object object, String message) {
+        if (object == null) {
+            throw new OrchestrationException(message);
+        }
+    }
+
+    /**
+     * 断言表达式为真，否则抛出编排异常
+     *
+     * @param expression 表达式
+     * @param message    异常消息
+     * @throws OrchestrationException 当表达式为false时
+     */
+    public static void orchestrationIsTrue(boolean expression, String message) {
+        if (!expression) {
+            throw new OrchestrationException(message);
+        }
+    }
+
+    /**
+     * 断言表达式为假，否则抛出编排异常
+     *
+     * @param expression 表达式
+     * @param message    异常消息
+     * @throws OrchestrationException 当表达式为true时
+     */
+    public static void orchestrationIsFalse(boolean expression, String message) {
+        if (expression) {
+            throw new OrchestrationException(message);
+        }
+    }
+
+    /**
+     * 直接抛出编排异常
+     *
+     * @param message 异常消息
+     * @throws OrchestrationException 编排异常
+     */
+    public static void orchestrationFail(String message) {
+        throw new OrchestrationException(message);
+    }
     /**
      * 断言数值为非负数，否则抛出业务异常
      *
