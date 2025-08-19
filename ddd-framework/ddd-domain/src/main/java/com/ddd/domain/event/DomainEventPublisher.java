@@ -37,7 +37,7 @@ public class DomainEventPublisher {
     }
 
     /**
-     * 事件发布器接口
+     * 事件发布器接口（实现类需要把自己注册到DomainEventPublisher）
      * 由基础设施层实现
      */
     public interface EventPublisher {

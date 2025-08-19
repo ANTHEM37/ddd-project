@@ -4,7 +4,9 @@ import com.ddd.application.command.ICommandBus;
 import com.ddd.application.command.impl.CommandBus;
 import com.ddd.application.query.IQueryBus;
 import com.ddd.application.query.impl.QueryBus;
+import com.ddd.common.converter.ConverterRegistry;
 import com.ddd.domain.event.DomainEventPublisher;
+import com.ddd.infrastructure.converter.SpringConverterManager;
 import com.ddd.infrastructure.messaging.event.SpringDomainEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,4 +63,13 @@ public class DDDFrameworkAutoConfiguration {
         return new SpringDomainEventPublisher(applicationEventPublisher, eventExecutor);
     }
 
+    /**
+     * 转换器管理器
+     */
+    @Bean
+    @ConditionalOnMissingBean(ConverterRegistry.ConverterManager.class)
+    public ConverterRegistry.ConverterManager converterManager() {
+        return new SpringConverterManager();
+    }
+    
 }
