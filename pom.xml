@@ -23,6 +23,7 @@
 
     <modules>
         <module>ddd-framework</module>
+        <module>ddd-example</module>
     </modules>
 
     <dependencyManagement>
