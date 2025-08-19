@@ -16,7 +16,7 @@
 
 ## 详细文档
 
-请查看 <mcfile name="README.md" path="ddd-framework/README.md"></mcfile> 以获取框架的详细架构设计、核心组件和使用方法。
+请查看 [ddd-framework/README.md](ddd-framework/README.md) 以获取框架的详细架构设计、核心组件和使用方法。
 
 ## 示例项目
 
