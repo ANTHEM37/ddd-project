@@ -99,7 +99,8 @@ graph LR
     subgraph "命令端 (Command Side)"
         CMD[Command] --> CB[Command Bus]
         CB --> CH[Command Handler]
-        CH --> AR[Aggregate Root]
+        CH --> REPO[Repository]
+        REPO --> AR[Aggregate Root]
         AR --> DE[Domain Event]
         DE --> EP[Event Publisher]
     end
@@ -107,17 +108,18 @@ graph LR
     subgraph "查询端 (Query Side)"
         QRY[Query] --> QB[Query Bus]
         QB --> QH[Query Handler]
-        QH --> RM[Read Model]
+        QH --> QREPO[Query Repository]
+        QREPO --> RM[Read Model]
         RM --> DB[(Database)]
     end
     
     subgraph "事件处理"
         EP --> EH[Event Handler]
-        EH --> RM
+        EH --> AS[Application Service]
+        AS --> RM
         EH --> ES[External System]
     end
     
-    AR --> REPO[Repository]
     REPO --> WDB[(Write DB)]
     
     style CMD fill:#ffcdd2
@@ -188,8 +190,8 @@ sequenceDiagram
     participant CommandBus
     participant QueryBus
     participant Handler
-    participant AggregateRoot
     participant Repository
+    participant AggregateRoot
     
     Client->>Facade: HTTP Request
     Facade->>Orchestration: execute()
@@ -197,8 +199,10 @@ sequenceDiagram
     loop 编排节点执行
         Orchestration->>CommandBus: send(command)
         CommandBus->>Handler: handle(command)
-        Handler->>AggregateRoot: businessMethod()
-        AggregateRoot->>Repository: save()
+        Handler->>Repository: findById() / save()
+        Repository->>AggregateRoot: get/create aggregate
+        AggregateRoot->>AggregateRoot: businessMethod()
+        AggregateRoot-->>Repository: updated aggregate
         Repository-->>Handler: success
         Handler-->>CommandBus: result
         CommandBus-->>Orchestration: result
