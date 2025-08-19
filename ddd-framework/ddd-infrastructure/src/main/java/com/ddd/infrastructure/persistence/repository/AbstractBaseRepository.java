@@ -3,7 +3,7 @@ package com.ddd.infrastructure.persistence.repository;
 import com.ddd.common.assertion.Assert;
 import com.ddd.domain.event.DomainEventPublisher;
 import com.ddd.domain.event.IDomainEvent;
-import com.ddd.domain.model.AggregateRoot;
+import com.ddd.domain.model.AbstractAggregateRoot;
 import com.ddd.domain.repository.IRepository;
 import com.ddd.domain.specification.ISpecification;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @date 2025/8/14 16:52:19
  */
 @Slf4j
-public abstract class AbstractBaseRepository<T extends AggregateRoot<ID>, ID> implements IRepository<T, ID> {
+public abstract class AbstractBaseRepository<T extends AbstractAggregateRoot<ID>, ID> implements IRepository<T, ID> {
 
     @Override
     @Transactional(rollbackFor = Exception.class)

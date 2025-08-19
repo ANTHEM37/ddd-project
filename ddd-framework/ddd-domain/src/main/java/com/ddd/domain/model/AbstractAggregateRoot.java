@@ -17,7 +17,7 @@ import java.util.List;
  * @author anthem37
  * @date 2025/8/14 09:27:38
  */
-public abstract class AggregateRoot<ID> extends Entity<ID> {
+public abstract class AbstractAggregateRoot<ID> extends AbstractEntity<ID> {
 
     private final List<IDomainEvent> domainEvents = new ArrayList<>();
 
@@ -27,7 +27,7 @@ public abstract class AggregateRoot<ID> extends Entity<ID> {
     @Getter
     private boolean removed = false;
 
-    protected AggregateRoot(ID id) {
+    protected AbstractAggregateRoot(ID id) {
         super(id);
     }
 

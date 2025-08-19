@@ -1,6 +1,6 @@
 package com.ddd.domain.repository;
 
-import com.ddd.domain.model.AggregateRoot;
+import com.ddd.domain.model.AbstractAggregateRoot;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +14,7 @@ import java.util.Optional;
  * @author anthem37
  * @date 2025/8/14 14:05:38
  */
-public interface IRepository<T extends AggregateRoot<ID>, ID> {
+public interface IRepository<T extends AbstractAggregateRoot<ID>, ID> {
 
     /**
      * 根据ID查找聚合

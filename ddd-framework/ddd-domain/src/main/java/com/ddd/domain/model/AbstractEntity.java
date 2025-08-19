@@ -16,12 +16,12 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
-public abstract class Entity<ID> {
+public abstract class AbstractEntity<ID> {
 
     @EqualsAndHashCode.Include
     protected final ID id;
 
-    protected Entity(ID id) {
+    protected AbstractEntity(ID id) {
         Assert.notNull(id, "实体ID不能为空");
         this.id = id;
     }

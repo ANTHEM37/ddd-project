@@ -32,7 +32,7 @@ import java.util.concurrent.Executor;
 @EnableAspectJAutoProxy
 @EnableTransactionManagement
 @ComponentScan(basePackages = {"com.ddd.application", "com.ddd.domain", "com.ddd.infrastructure"})
-public class DddFrameworkAutoConfiguration {
+public class DDDFrameworkAutoConfiguration {
 
     /**
      * 命令总线

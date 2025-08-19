@@ -19,7 +19,7 @@ import java.util.concurrent.Executor;
 public class SpringDomainEventPublisher implements DomainEventPublisher.EventPublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
-    private Executor eventExecutor;
+    private final Executor eventExecutor;
 
     public SpringDomainEventPublisher(ApplicationEventPublisher applicationEventPublisher, Executor eventExecutor) {
         this.applicationEventPublisher = applicationEventPublisher;

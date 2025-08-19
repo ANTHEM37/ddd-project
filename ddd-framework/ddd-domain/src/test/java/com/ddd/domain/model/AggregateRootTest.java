@@ -208,7 +208,7 @@ class AggregateRootTest {
     }
 
     // 测试用的聚合根实现
-    private static class TestAggregateRoot extends AggregateRoot<String> {
+    private static class TestAggregateRoot extends AbstractAggregateRoot<String> {
         private boolean canBeRemoved = true;
         private boolean invariantsValid = true;
         private boolean invariantsValidated = false;
