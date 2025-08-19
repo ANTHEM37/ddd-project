@@ -669,11 +669,11 @@ public class UserRegistrationOrchestration {
 
 ## 📖 模块文档
 
-- [ddd-common](./ddd-common/README.md) - 通用工具和基础类
-- [ddd-interfaces](./ddd-interfaces/README.md) - 接口层实现
-- [ddd-application](./ddd-application/README.md) - 应用层服务
-- [ddd-domain](./ddd-domain/README.md) - 领域层核心
-- [ddd-infrastructure](./ddd-infrastructure/README.md) - 基础设施层
+- [ddd-common](ddd-framework/ddd-common/README.md) - 通用工具和基础类
+- [ddd-interfaces](ddd-framework/ddd-interfaces/README.md) - 接口层实现
+- [ddd-application](ddd-framework/ddd-application/README.md) - 应用层服务
+- [ddd-domain](ddd-framework/ddd-domain/README.md) - 领域层核心
+- [ddd-infrastructure](ddd-framework/ddd-infrastructure/README.md) - 基础设施层
 
 ## 🤝 贡献指南
 
@@ -685,7 +685,7 @@ public class UserRegistrationOrchestration {
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](../LICENSE) 文件了解详情。
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 👥 作者
 
