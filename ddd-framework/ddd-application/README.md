@@ -113,35 +113,56 @@ public class UserApplicationService implements IApplicationService {
         UserQuery query = new UserQuery(userId);
         return sendQuery(query);
     }
-}
-```
+### 3.
 
-    @Override
-    @Transactional
-    public OrderId handle(CreateOrderCommand command) {
-        // 验证命令
-        Assert.isTrue(command.isValid(), "无效的创建订单命令");
-        
-        // 获取客户信息
-        CustomerId customerId = CustomerId.of(command.getCustomerId());
-        Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new BusinessException("客户不存在"));
-        
-        // 使用领域服务创建订单
-        Order order = orderDomainService.createOrder(customerId, command.getItems());
-        
-        // 保存订单
-        orderRepository.save(order);
-        
-        return order.getId();
-    }
-    
-    @Override
-    public Class<CreateOrderCommand> getSupportedCommandType() {
-        return CreateOrderCommand.class;
-    }
+    命令处理器(CommandHandler)
 
-}
+    命令处理器负责执行命令并返回结果。
+
+            ```java
+    @Component
+
+    public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
+
+        private final CustomerRepository customerRepository;
+        private final OrderRepository orderRepository;
+        private final OrderDomainService orderDomainService;
+
+        @Autowired
+        public CreateOrderCommandHandler(CustomerRepository customerRepository,
+                                         OrderRepository orderRepository,
+                                         OrderDomainService orderDomainService) {
+            this.customerRepository = customerRepository;
+            this.orderRepository = orderRepository;
+            this.orderDomainService = orderDomainService;
+        }
+
+        @Override
+        @Transactional
+        public OrderId handle(CreateOrderCommand command) {
+            // 验证命令
+            Assert.isTrue(command.isValid(), "无效的创建订单命令");
+
+            // 获取客户信息
+            CustomerId customerId = CustomerId.of(command.getCustomerId());
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new BusinessException("客户不存在"));
+
+            // 使用领域服务创建订单
+            Order order = orderDomainService.createOrder(customerId, command.getItems());
+
+            // 保存订单
+            orderRepository.save(order);
+
+            return order.getId();
+        }
+
+        @Override
+        public Class<CreateOrderCommand> getSupportedCommandType() {
+            return CreateOrderCommand.class;
+        }
+
+    }
 
 ```
 

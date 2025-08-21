@@ -93,6 +93,8 @@ graph TB
     style D1 fill:#fff3e0
 ```
 
+```
+
 ### CQRS 架构图
 
 ```mermaid
@@ -126,6 +128,8 @@ graph LR
     style CMD fill:#ffcdd2
     style QRY fill:#c8e6c9
     style DE fill:#fff3e0
+```
+
 ```
 
 ### 领域模型关系图
@@ -181,6 +185,8 @@ classDiagram
     DomainService --> AggregateRoot : operates on
 ```
 
+```
+
 ### 业务编排时序图
 
 ```mermaid
@@ -190,7 +196,8 @@ sequenceDiagram
     participant Orchestration
     participant CommandBus
     participant QueryBus
-    participant Handler
+    participant CommandHandler
+    participant QueryHandler
     participant Repository
     participant AggregateRoot
     
@@ -198,6 +205,27 @@ sequenceDiagram
     Facade->>Orchestration: execute()
     
     loop 编排节点执行
+        Orchestration->>CommandBus: sendCommand()
+        CommandBus->>CommandHandler: handle()
+        CommandHandler->>Repository: save()
+        Repository->>AggregateRoot: update
+        AggregateRoot-->>Repository: updated
+        Repository-->>CommandHandler: saved
+        CommandHandler-->>CommandBus: result
+        CommandBus-->>Orchestration: result
+        
+        Orchestration->>QueryBus: sendQuery()
+        QueryBus->>QueryHandler: handle()
+        QueryHandler->>Repository: find()
+        Repository-->>QueryHandler: data
+        QueryHandler-->>QueryBus: result
+        QueryBus-->>Orchestration: result
+    end
+    
+    Orchestration-->>Facade: result
+    Facade-->>Client: HTTP Response
+```
+
         Orchestration->>CommandBus: send(command)
         CommandBus->>Handler: handle(command)
         Handler->>Repository: findById() / save()
@@ -218,6 +246,7 @@ sequenceDiagram
     
     Orchestration-->>Facade: execution result
     Facade-->>Client: HTTP Response
+
 ```
 
 ### 事件驱动架构图
@@ -437,32 +466,32 @@ flowchart TD
     <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 应用层（CQRS、编排等） -->
+        <!-- 应用层（CQRS、编排等） -->
 <dependency>
-    <groupId>io.github.anthem37</groupId>
-    <artifactId>ddd-application</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+<groupId>io.github.anthem37</groupId>
+<artifactId>ddd-application</artifactId>
+<version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 领域层（聚合根、实体等） -->
+        <!-- 领域层（聚合根、实体等） -->
 <dependency>
-    <groupId>io.github.anthem37</groupId>
-    <artifactId>ddd-domain</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+<groupId>io.github.anthem37</groupId>
+<artifactId>ddd-domain</artifactId>
+<version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 接口层（DTO、门面等） -->
+        <!-- 接口层（DTO、门面等） -->
 <dependency>
-    <groupId>io.github.anthem37</groupId>
-    <artifactId>ddd-interfaces</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+<groupId>io.github.anthem37</groupId>
+<artifactId>ddd-interfaces</artifactId>
+<version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 通用工具（断言、异常等） -->
+        <!-- 通用工具（断言、异常等） -->
 <dependency>
-    <groupId>io.github.anthem37</groupId>
-    <artifactId>ddd-common</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+<groupId>io.github.anthem37</groupId>
+<artifactId>ddd-common</artifactId>
+<version>1.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -476,14 +505,14 @@ flowchart TD
     <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 必需：通用工具 -->
+        <!-- 必需：通用工具 -->
 <dependency>
-    <groupId>io.github.anthem37</groupId>
-    <artifactId>ddd-common</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+<groupId>io.github.anthem37</groupId>
+<artifactId>ddd-common</artifactId>
+<version>1.0.1-SNAPSHOT</version>
 </dependency>
 
-<!-- 可选：根据需要添加其他模块 -->
+        <!-- 可选：根据需要添加其他模块 -->
 ```
 
 > **重要说明**：
@@ -497,6 +526,7 @@ flowchart TD
 在 Spring Boot 应用中，框架会自动配置所有必要的组件：
 
 ```java
+
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
@@ -509,23 +539,23 @@ public class Application {
 
 ```java
 public class Order extends AbstractAggregateRoot<OrderId> {
-    
+
     private OrderStatus status;
     private List<OrderItem> items;
-    
+
     protected Order(OrderId id) {
         super(id);
         this.status = OrderStatus.PENDING;
         this.items = new ArrayList<>();
     }
-    
+
     public void addItem(OrderItem item) {
         checkRule(new OrderCanAddItemRule(this.status));
         this.items.add(item);
         addDomainEvent(new OrderItemAddedEvent(getId(), item));
         afterBusinessOperation();
     }
-    
+
     @Override
     protected void addDeletedDomainEvent() {
         addDomainEvent(new OrderDeletedEvent(getId()));
@@ -561,30 +591,31 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
 ### 5. 使用业务编排
 
 ```java
+
 @Service
 public class OrderProcessOrchestration {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     @Autowired
     private IQueryBus queryBus;
-    
+
     public void createOrderProcess() {
         Orchestration orchestration = new Orchestration("order-process", "订单处理流程", commandBus, queryBus);
-        
+
         orchestration
-            .addCommand("validate", "验证订单", ctx -> new ValidateOrderCommand(ctx.getVariable("orderId", String.class)))
-            .addCondition("check-stock", "检查库存", ctx -> checkStock(ctx))
-            .addCommand("create-order", "创建订单", ctx -> new CreateOrderCommand())
-            .addQuery("get-order", "获取订单", ctx -> new GetOrderQuery())
-            .connect("validate", "check-stock")
-            .connectWhenTrue("check-stock", "create-order")
-            .connect("create-order", "get-order");
-            
+                .addCommand("validate", "验证订单", ctx -> new ValidateOrderCommand(ctx.getVariable("orderId", String.class)))
+                .addCondition("check-stock", "检查库存", ctx -> checkStock(ctx))
+                .addCommand("create-order", "创建订单", ctx -> new CreateOrderCommand())
+                .addQuery("get-order", "获取订单", ctx -> new GetOrderQuery())
+                .connect("validate", "check-stock")
+                .connectWhenTrue("check-stock", "create-order")
+                .connect("create-order", "get-order");
+
         // 执行编排
         Orchestration.Result result = orchestration.execute();
-        
+
         // 导出 PlantUML
         String plantUML = orchestration.toPlantUML();
     }
@@ -657,25 +688,25 @@ public class OrderController extends AbstractBaseFacade {
 
 ```java
 public class UserRegistrationOrchestration {
-    
+
     public void registerUser(String email, String password) {
         Orchestration orchestration = new Orchestration("user-registration", "用户注册流程", commandBus, queryBus);
-        
+
         orchestration
-            .addQuery("check-email", "检查邮箱", ctx -> new CheckEmailExistsQuery(email))
-            .addCondition("email-available", "邮箱可用", "check-email", false)
-            .addCommand("create-user", "创建用户", ctx -> new CreateUserCommand(email, password))
-            .addCommand("send-welcome", "发送欢迎邮件", ctx -> new SendWelcomeEmailCommand(email))
-            .connect("check-email", "email-available")
-            .connectWhenTrue("email-available", "create-user")
-            .connect("create-user", "send-welcome");
-            
+                .addQuery("check-email", "检查邮箱", ctx -> new CheckEmailExistsQuery(email))
+                .addCondition("email-available", "邮箱可用", "check-email", false)
+                .addCommand("create-user", "创建用户", ctx -> new CreateUserCommand(email, password))
+                .addCommand("send-welcome", "发送欢迎邮件", ctx -> new SendWelcomeEmailCommand(email))
+                .connect("check-email", "email-available")
+                .connectWhenTrue("email-available", "create-user")
+                .connect("create-user", "send-welcome");
+
         Orchestration.Context context = new Orchestration.Context("user-reg-001");
         context.setVariable("email", email);
         context.setVariable("password", password);
-        
+
         Orchestration.Result result = orchestration.execute(context);
-        
+
         if (result.isSuccess()) {
             log.info("用户注册成功，耗时: {}ms", result.getExecutionTimeMillis());
         } else {

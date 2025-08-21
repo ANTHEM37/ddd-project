@@ -29,36 +29,28 @@ ddd-common/
 ```java
 // 非空断言
 Assert.notNull(user, "用户不能为空");
-Assert.
+Assert.hasText(username, "用户名不能为空");
+Assert.notEmpty(orderItems, "订单项不能为空");
 
-hasText(username, "用户名不能为空");
-Assert.
 
-notEmpty(orderItems, "订单项不能为空");
 
 // 条件断言
-Assert.
+Assert.isTrue(age >= 18, "年龄必须大于等于18岁");
+Assert.isFalse(user.isDeleted(), "用户已被删除");
 
-isTrue(age >=18, "年龄必须大于等于18岁");
-Assert.
 
-isFalse(user.isDeleted(), "用户已被删除");
 
 // 数值断言
-        Assert.
+        Assert.isNotNegative(amount, "金额不能为负数");
+Assert.inRange(score, 0, 100, "分数必须在0-100之间");
 
-isNotNegative(amount, "金额不能为负数");
-Assert.
 
-inRange(score, 0,100,"分数必须在0-100之间");
 
 // 字符串断言
-Assert.
+Assert.hasLength(password, 6, 20, "密码长度必须在6-20位之间");
+Assert.matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", "邮箱格式不正确");
 
-hasLength(password, 6,20,"密码长度必须在6-20位之间");
-Assert.
 
-matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$","邮箱格式不正确");
 ```
 
 #### 业务规则断言
@@ -71,6 +63,7 @@ Assert.
 isTrue(rule.isSatisfied(),rule.
 
 getMessage());
+
 
 // 多个规则检查
 IBusinessRule[] rules = {
@@ -85,6 +78,8 @@ IBusinessRule businessRule :rules){
 isTrue(businessRule.isSatisfied(),businessRule.
 
 getMessage());
+
+
         }
 ```
 
