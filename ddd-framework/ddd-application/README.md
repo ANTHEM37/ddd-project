@@ -75,6 +75,7 @@ public interface IApplicationService {
 ## 使用示例
 
 ```java
+
 @Service
 public class UserApplicationService implements IApplicationService {
 
@@ -100,9 +101,9 @@ public class UserApplicationService implements IApplicationService {
     public UserDTO createUser(CreateUserRequest request) {
         // 转换请求为命令
         CreateUserCommand command = new CreateUserCommand(
-            request.getUsername(),
-            request.getEmail(),
-            request.getPassword()
+                request.getUsername(),
+                request.getEmail(),
+                request.getPassword()
         );
 
         // 发送命令
@@ -139,7 +140,9 @@ public class UserApplicationService implements IApplicationService {
     public Class<CreateOrderCommand> getSupportedCommandType() {
         return CreateOrderCommand.class;
     }
+
 }
+
 ```
 
 #### 命令总线 (CommandBus)
@@ -268,70 +271,71 @@ public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderD
 #### 基本使用
 
 ```java
+
 @Service
 public class OrderProcessOrchestration {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     @Autowired
     private IQueryBus queryBus;
-    
+
     public void processOrder(String customerId, List<OrderItemRequest> items) {
         // 创建编排实例
         Orchestration orchestration = new Orchestration(
-            "order-process-001", 
-            "订单处理流程", 
-            commandBus, 
-            queryBus
+                "order-process-001",
+                "订单处理流程",
+                commandBus,
+                queryBus
         );
-        
+
         // 构建流程
         orchestration
-            // 1. 验证客户
-            .addQuery("validate-customer", "验证客户", 
-                ctx -> new ValidateCustomerQuery(customerId))
-            
-            // 2. 检查库存
-            .addQuery("check-inventory", "检查库存", 
-                ctx -> new CheckInventoryQuery(items))
-            
-            // 3. 库存充足判断
-            .addCondition("inventory-sufficient", "库存充足", 
-                ctx -> {
-                    InventoryCheckResult result = ctx.getResult("check-inventory", InventoryCheckResult.class);
-                    return result.isSufficient();
-                })
-            
-            // 4. 创建订单
-            .addCommand("create-order", "创建订单", 
-                ctx -> new CreateOrderCommand(customerId, items))
-            
-            // 5. 发送确认邮件
-            .addCommand("send-email", "发送确认邮件", 
-                ctx -> {
-                    OrderId orderId = ctx.getResult("create-order", OrderId.class);
-                    return new SendOrderConfirmationEmailCommand(orderId);
-                })
-            
-            // 6. 库存不足处理
-            .addCommand("notify-shortage", "通知库存不足", 
-                ctx -> new NotifyInventoryShortageCommand(customerId, items))
-            
-            // 连接节点
-            .connect("validate-customer", "check-inventory")
-            .connect("check-inventory", "inventory-sufficient")
-            .connectWhenTrue("inventory-sufficient", "create-order")
-            .connectWhenFalse("inventory-sufficient", "notify-shortage")
-            .connect("create-order", "send-email");
-        
+                // 1. 验证客户
+                .addQuery("validate-customer", "验证客户",
+                        ctx -> new ValidateCustomerQuery(customerId))
+
+                // 2. 检查库存
+                .addQuery("check-inventory", "检查库存",
+                        ctx -> new CheckInventoryQuery(items))
+
+                // 3. 库存充足判断
+                .addCondition("inventory-sufficient", "库存充足",
+                        ctx -> {
+                            InventoryCheckResult result = ctx.getResult("check-inventory", InventoryCheckResult.class);
+                            return result.isSufficient();
+                        })
+
+                // 4. 创建订单
+                .addCommand("create-order", "创建订单",
+                        ctx -> new CreateOrderCommand(customerId, items))
+
+                // 5. 发送确认邮件
+                .addCommand("send-email", "发送确认邮件",
+                        ctx -> {
+                            OrderId orderId = ctx.getResult("create-order", OrderId.class);
+                            return new SendOrderConfirmationEmailCommand(orderId);
+                        })
+
+                // 6. 库存不足处理
+                .addCommand("notify-shortage", "通知库存不足",
+                        ctx -> new NotifyInventoryShortageCommand(customerId, items))
+
+                // 连接节点
+                .connect("validate-customer", "check-inventory")
+                .connect("check-inventory", "inventory-sufficient")
+                .connectWhenTrue("inventory-sufficient", "create-order")
+                .connectWhenFalse("inventory-sufficient", "notify-shortage")
+                .connect("create-order", "send-email");
+
         // 执行编排
         Orchestration.Context context = new Orchestration.Context("order-process-001");
         context.setVariable("customerId", customerId);
         context.setVariable("items", items);
-        
+
         Orchestration.Result result = orchestration.execute(context);
-        
+
         if (result.isSuccess()) {
             log.info("订单处理成功，耗时: {}ms", result.getExecutionTimeMillis());
         } else {
@@ -345,67 +349,68 @@ public class OrderProcessOrchestration {
 #### 复杂编排示例
 
 ```java
+
 @Service
 public class UserRegistrationOrchestration {
-    
+
     public void registerUser(UserRegistrationRequest request) {
         Orchestration orchestration = new Orchestration(
-            "user-registration", 
-            "用户注册流程", 
-            commandBus, 
-            queryBus
+                "user-registration",
+                "用户注册流程",
+                commandBus,
+                queryBus
         );
-        
+
         orchestration
-            // 邮箱验证
-            .addQuery("check-email", "检查邮箱", 
-                ctx -> new CheckEmailExistsQuery(request.getEmail()))
-            .addCondition("email-available", "邮箱可用", "check-email", false)
-            
-            // 用户名验证
-            .addQuery("check-username", "检查用户名", 
-                ctx -> new CheckUsernameExistsQuery(request.getUsername()))
-            .addCondition("username-available", "用户名可用", "check-username", false)
-            
-            // 创建用户
-            .addCommand("create-user", "创建用户", 
-                ctx -> new CreateUserCommand(request))
-            
-            // 发送验证邮件
-            .addCommand("send-verification", "发送验证邮件", 
-                ctx -> {
-                    UserId userId = ctx.getResult("create-user", UserId.class);
-                    return new SendVerificationEmailCommand(userId, request.getEmail());
-                })
-            
-            // 创建用户配置
-            .addCommand("create-profile", "创建用户配置", 
-                ctx -> {
-                    UserId userId = ctx.getResult("create-user", UserId.class);
-                    return new CreateUserProfileCommand(userId);
-                })
-            
-            // 记录注册事件
-            .addGeneric("log-registration", "记录注册", 
-                ctx -> {
-                    UserId userId = ctx.getResult("create-user", UserId.class);
-                    log.info("用户注册成功: {}", userId);
-                    return "logged";
-                })
-            
-            // 连接流程
-            .connect("check-email", "email-available")
-            .connectWhenTrue("email-available", "check-username")
-            .connect("check-username", "username-available")
-            .connectWhenTrue("username-available", "create-user")
-            .connect("create-user", "send-verification")
-            .connect("create-user", "create-profile")
-            .connect("create-user", "log-registration");
-        
+                // 邮箱验证
+                .addQuery("check-email", "检查邮箱",
+                        ctx -> new CheckEmailExistsQuery(request.getEmail()))
+                .addCondition("email-available", "邮箱可用", "check-email", false)
+
+                // 用户名验证
+                .addQuery("check-username", "检查用户名",
+                        ctx -> new CheckUsernameExistsQuery(request.getUsername()))
+                .addCondition("username-available", "用户名可用", "check-username", false)
+
+                // 创建用户
+                .addCommand("create-user", "创建用户",
+                        ctx -> new CreateUserCommand(request))
+
+                // 发送验证邮件
+                .addCommand("send-verification", "发送验证邮件",
+                        ctx -> {
+                            UserId userId = ctx.getResult("create-user", UserId.class);
+                            return new SendVerificationEmailCommand(userId, request.getEmail());
+                        })
+
+                // 创建用户配置
+                .addCommand("create-profile", "创建用户配置",
+                        ctx -> {
+                            UserId userId = ctx.getResult("create-user", UserId.class);
+                            return new CreateUserProfileCommand(userId);
+                        })
+
+                // 记录注册事件
+                .addGeneric("log-registration", "记录注册",
+                        ctx -> {
+                            UserId userId = ctx.getResult("create-user", UserId.class);
+                            log.info("用户注册成功: {}", userId);
+                            return "logged";
+                        })
+
+                // 连接流程
+                .connect("check-email", "email-available")
+                .connectWhenTrue("email-available", "check-username")
+                .connect("check-username", "username-available")
+                .connectWhenTrue("username-available", "create-user")
+                .connect("create-user", "send-verification")
+                .connect("create-user", "create-profile")
+                .connect("create-user", "log-registration");
+
         // 执行并导出流程图
         Orchestration.Result result = orchestration.execute();
         String plantUML = orchestration.toPlantUML();
-        
+
         // 保存流程图到文件或数据库
         saveProcessDiagram("user-registration", plantUML);
     }
@@ -452,52 +457,52 @@ public void exportProcessDiagram() {
 ```java
 // 命令转换器接口
 public interface ICommandConverter<S, T extends ICommand<?>> {
-    
+
     /**
      * 转换为命令
      */
     T toCommand(S source);
-    
+
     /**
      * 批量转换
      */
     default List<T> toCommands(List<S> sources) {
         return sources.stream()
-            .map(this::toCommand)
-            .collect(Collectors.toList());
+                .map(this::toCommand)
+                .collect(Collectors.toList());
     }
 }
 
 // 具体转换器实现
 @Component
-public class CreateOrderRequestToCommandConverter 
-    extends AbstractCommandConverter<CreateOrderRequest, CreateOrderCommand> {
-    
+public class CreateOrderRequestToCommandConverter
+        extends AbstractCommandConverter<CreateOrderRequest, CreateOrderCommand> {
+
     @Override
     public CreateOrderCommand toCommand(CreateOrderRequest request) {
         Assert.notNull(request, "请求不能为空");
-        
+
         return new CreateOrderCommand(
-            request.getCustomerId(),
-            convertOrderItems(request.getItems()),
-            request.getShippingAddress()
+                request.getCustomerId(),
+                convertOrderItems(request.getItems()),
+                request.getShippingAddress()
         );
     }
-    
+
     private List<CreateOrderItemRequest> convertOrderItems(List<OrderItemRequest> items) {
         return items.stream()
-            .map(item -> new CreateOrderItemRequest(
-                item.getProductId(),
-                item.getQuantity(),
-                item.getUnitPrice()
-            ))
-            .collect(Collectors.toList());
+                .map(item -> new CreateOrderItemRequest(
+                        item.getProductId(),
+                        item.getQuantity(),
+                        item.getUnitPrice()
+                ))
+                .collect(Collectors.toList());
     }
-    
+
     @Override
     public boolean supports(Class<?> sourceType, Class<?> targetType) {
         return CreateOrderRequest.class.isAssignableFrom(sourceType)
-            && CreateOrderCommand.class.isAssignableFrom(targetType);
+                && CreateOrderCommand.class.isAssignableFrom(targetType);
     }
 }
 ```
@@ -507,39 +512,39 @@ public class CreateOrderRequestToCommandConverter
 ```java
 // 查询转换器接口
 public interface IQueryConverter<S, T extends IQuery<?>> {
-    
+
     /**
      * 转换为查询
      */
     T toQuery(S source);
-    
+
     /**
      * 批量转换
      */
     default List<T> toQueries(List<S> sources) {
         return sources.stream()
-            .map(this::toQuery)
-            .collect(Collectors.toList());
+                .map(this::toQuery)
+                .collect(Collectors.toList());
     }
 }
 
 // 具体转换器实现
 @Component
-public class OrderQueryRequestToQueryConverter 
-    extends AbstractQueryConverter<OrderQueryRequest, GetOrderQuery> {
-    
+public class OrderQueryRequestToQueryConverter
+        extends AbstractQueryConverter<OrderQueryRequest, GetOrderQuery> {
+
     @Override
     public GetOrderQuery toQuery(OrderQueryRequest request) {
         Assert.notNull(request, "查询请求不能为空");
         Assert.hasText(request.getOrderId(), "订单ID不能为空");
-        
+
         return new GetOrderQuery(request.getOrderId());
     }
-    
+
     @Override
     public boolean supports(Class<?> sourceType, Class<?> targetType) {
         return OrderQueryRequest.class.isAssignableFrom(sourceType)
-            && GetOrderQuery.class.isAssignableFrom(targetType);
+                && GetOrderQuery.class.isAssignableFrom(targetType);
     }
 }
 ```

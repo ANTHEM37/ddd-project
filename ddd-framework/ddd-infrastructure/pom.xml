@@ -16,11 +16,7 @@
     <description>DDD基础设施层组件</description>
 
     <dependencies>
-        <dependency>
-            <groupId>io.github.anthem37</groupId>
-            <artifactId>ddd-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>io.github.anthem37</groupId>
             <artifactId>ddd-application</artifactId>

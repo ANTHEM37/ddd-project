@@ -29,20 +29,36 @@ ddd-common/
 ```java
 // 非空断言
 Assert.notNull(user, "用户不能为空");
-Assert.hasText(username, "用户名不能为空");
-Assert.notEmpty(orderItems, "订单项不能为空");
+Assert.
+
+hasText(username, "用户名不能为空");
+Assert.
+
+notEmpty(orderItems, "订单项不能为空");
 
 // 条件断言
-Assert.isTrue(age >= 18, "年龄必须大于等于18岁");
-Assert.isFalse(user.isDeleted(), "用户已被删除");
+Assert.
+
+isTrue(age >=18, "年龄必须大于等于18岁");
+Assert.
+
+isFalse(user.isDeleted(), "用户已被删除");
 
 // 数值断言
-Assert.isNotNegative(amount, "金额不能为负数");
-Assert.inRange(score, 0, 100, "分数必须在0-100之间");
+        Assert.
+
+isNotNegative(amount, "金额不能为负数");
+Assert.
+
+inRange(score, 0,100,"分数必须在0-100之间");
 
 // 字符串断言
-Assert.hasLength(password, 6, 20, "密码长度必须在6-20位之间");
-Assert.matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", "邮箱格式不正确");
+Assert.
+
+hasLength(password, 6,20,"密码长度必须在6-20位之间");
+Assert.
+
+matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$","邮箱格式不正确");
 ```
 
 #### 业务规则断言
@@ -50,17 +66,26 @@ Assert.matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", "邮箱格式不�
 ```java
 // 单个规则检查
 IBusinessRule rule = new UserCanPlaceOrderRule(user);
-Assert.isTrue(rule.isSatisfied(), rule.getMessage());
+Assert.
+
+isTrue(rule.isSatisfied(),rule.
+
+getMessage());
 
 // 多个规则检查
 IBusinessRule[] rules = {
-    new UserCanPlaceOrderRule(user),
-    new OrderAmountValidRule(amount),
-    new InventoryAvailableRule(productId, quantity)
+        new UserCanPlaceOrderRule(user),
+        new OrderAmountValidRule(amount),
+        new InventoryAvailableRule(productId, quantity)
 };
-for (IBusinessRule businessRule : rules) {
-    Assert.isTrue(businessRule.isSatisfied(), businessRule.getMessage());
-}
+for(
+IBusinessRule businessRule :rules){
+        Assert.
+
+isTrue(businessRule.isSatisfied(),businessRule.
+
+getMessage());
+        }
 ```
 
 #### 编排专用断言
@@ -68,8 +93,12 @@ for (IBusinessRule businessRule : rules) {
 ```java
 // 编排流程中的断言，抛出 OrchestrationException
 Assert.orchestrationNotNull(command, "命令不能为空");
-Assert.orchestrationIsTrue(condition, "条件不满足");
-Assert.orchestrationFail("编排执行失败");
+Assert.
+
+orchestrationIsTrue(condition, "条件不满足");
+Assert.
+
+orchestrationFail("编排执行失败");
 ```
 
 ### 2. 异常体系
@@ -307,12 +336,12 @@ public class Orchestration {
 
 ```java
 public class OrderService {
-    
+
     public void processOrder(Order order) {
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessException("ORDER_001", "订单状态不允许处理");
         }
-        
+
         try {
             // 业务处理
         } catch (Exception e) {
@@ -341,7 +370,7 @@ public class Order extends AbstractAggregateRoot<OrderId> {
 
 ```java
 public class OrderProcessOrchestration {
-    
+
     private void validateNode(String nodeId) {
         if (StringUtils.isEmpty(nodeId)) {
             throw new OrchestrationException("节点ID不能为空");
@@ -478,7 +507,9 @@ String last = CollectionUtils.getLast(list);
 Object value = ReflectionUtils.getFieldValue(object, "fieldName");
 
 // 设置字段值
-ReflectionUtils.setFieldValue(object, "fieldName", newValue);
+ReflectionUtils.
+
+setFieldValue(object, "fieldName",newValue);
 
 // 调用方法
 Object result = ReflectionUtils.invokeMethod(object, "methodName", args);
@@ -606,6 +637,7 @@ public class DataProcessor {
 ### Maven 依赖
 
 ```xml
+
 <dependencies>
     <dependency>
         <groupId>org.projectlombok</groupId>

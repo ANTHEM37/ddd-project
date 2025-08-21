@@ -119,6 +119,7 @@ public class PagedResult<T> extends BaseResponse {
 #### 具体请求对象示例
 
 ```java
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CreateUserRequest extends AbstractBaseRequest {
@@ -151,8 +152,11 @@ public class CreateUserRequest extends AbstractBaseRequest {
 // 组装器接口
 public interface IDTOAssembler<D, M> {
     D toDTO(M model);
+
     M toModel(D dto);
+
     List<D> toDTOList(Collection<M> models);
+
     List<M> toModelList(Collection<D> dtos);
 }
 
@@ -246,6 +250,7 @@ public class RestApiExceptionHandler {
 ### 1. 创建控制器
 
 ```java
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -282,6 +287,7 @@ public class UserController {
 ### 2. 创建门面实现
 
 ```java
+
 @Service
 public class UserFacadeImpl extends AbstractBaseFacade implements UserFacade {
 
@@ -336,7 +342,9 @@ public class UserFacadeImpl extends AbstractBaseFacade implements UserFacade {
                 && quantity != null && quantity > 0
                 && unitPrice != null && unitPrice.compareTo(BigDecimal.ZERO) > 0;
     }
+
 }
+
 ```
 
 #### 响应对象体系
@@ -1239,6 +1247,7 @@ public class ComplexOrderFacade extends AbstractBaseFacade {
 ### Maven 依赖
 
 ```xml
+
 <dependencies>
     <dependency>
         <groupId>io.github.anthem37</groupId>
@@ -1427,21 +1436,22 @@ class OrderFacadeUnitTest {
 ### 自定义异常处理
 
 ```java
+
 @RestControllerAdvice
 public class CustomExceptionHandler extends RestApiExceptionHandler {
-    
+
     /**
      * 自定义业务异常处理
      */
     @ExceptionHandler(CustomBusinessException.class)
     public ResponseEntity<ErrorResponse> handleCustomBusinessException(
             CustomBusinessException e, HttpServletRequest request) {
-        
+
         log.warn("自定义业务异常: {}", e.getMessage());
-        
+
         ErrorResponse response = new ErrorResponse("CUSTOM_ERROR", e.getMessage(), e.getDetail());
         response.setRequestId(getRequestId(request));
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

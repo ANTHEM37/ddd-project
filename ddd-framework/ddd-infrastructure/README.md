@@ -25,6 +25,7 @@ ddd-infrastructure/
 框架的核心自动配置类，提供所有必要组件的自动装配。
 
 ```java
+
 @Slf4j
 @Configuration
 @EnableAsync
@@ -78,6 +79,7 @@ public class DDDFrameworkAutoConfiguration {
 异步执行器配置，为不同类型的操作提供专门的线程池。
 
 ```java
+
 @Configuration
 @EnableAsync
 @Slf4j
@@ -181,6 +183,7 @@ CQRS (命令查询职责分离) 模式的具体实现位于 `cqrs/bus/impl` 包�
 ### 1. 创建自定义仓储实现
 
 ```java
+
 @Repository
 public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> implements IUserRepository {
 
@@ -207,6 +210,7 @@ public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> imp
 ### 2. 创建领域事件处理器
 
 ```java
+
 @Component
 public class OrderConfirmedEventHandler extends AbstractEventHandler<OrderConfirmedEvent> {
 
@@ -261,7 +265,9 @@ public class OrderConfirmedEventHandler extends AbstractEventHandler<OrderConfir
         log.info("初始化事件执行器: corePoolSize=8, maxPoolSize=16, queueCapacity=500");
         return executor;
     }
+
 }
+
 ```
 
 ### 2. 消息处理 (Messaging)
@@ -1234,10 +1240,10 @@ public class CustomConverterManager implements ConverterRegistry.ConverterManage
 
 ```java
 public abstract class CacheableRepository<T, ID> extends AbstractBaseRepository<T, ID> {
-    
+
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-    
+
     @Override
     public Optional<T> findById(ID id) {
         // 先查缓存
@@ -1246,30 +1252,31 @@ public abstract class CacheableRepository<T, ID> extends AbstractBaseRepository<
         if (cached != null) {
             return Optional.of(cached);
         }
-        
+
         // 查数据库
         Optional<T> entity = super.findById(id);
         entity.ifPresent(e -> cacheEntity(cacheKey, e));
-        
+
         return entity;
     }
-    
+
     @Override
     public void save(T aggregate) {
         super.save(aggregate);
-        
+
         // 更新缓存
         String cacheKey = getCacheKey(getEntityId(aggregate));
         cacheEntity(cacheKey, aggregate);
     }
-    
+
     protected abstract String getCacheKey(ID id);
+
     protected abstract ID getEntityId(T entity);
-    
+
     private T getCachedEntity(String cacheKey) {
         return (T) redisTemplate.opsForValue().get(cacheKey);
     }
-    
+
     private void cacheEntity(String cacheKey, T entity) {
         redisTemplate.opsForValue().set(cacheKey, entity, Duration.ofHours(1));
     }
