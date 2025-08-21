@@ -6,98 +6,115 @@ DDD 框架的应用层模块，负责业务流程编排、命令查询处理、�
 
 ```
 ddd-application/
-├── bus/               # 消息总线基础类
-├── command/           # 命令处理
-├── converter/         # 应用层转换器
-├── orchestration/     # 业务编排框架
-├── query/            # 查询处理
-└── service/          # 应用服务
+└── service/          # 应用服务接口
 ```
 
 ## 🏗️ 核心组件
 
-### 1. CQRS 支持
-
-#### 命令处理 (Command)
-
-命令代表系统的写操作，会改变系统状态。
+### 1. 应用服务接口
 
 ```java
-// 命令接口
-public interface ICommand<R> {
-    
-    /**
-     * 验证命令是否有效
-     */
-    boolean isValid();
-    
-    /**
-     * 获取命令的业务标识
-     */
-    default String getBusinessIdentifier() {
-        return this.getClass().getSimpleName();
-    }
-}
+package io.github.anthem37.ddd.application.service;
 
-// 具体命令实现
-public class CreateOrderCommand implements ICommand<OrderId> {
-    
-    private final String customerId;
-    private final List<CreateOrderItemRequest> items;
-    private final String shippingAddress;
-    
-    public CreateOrderCommand(String customerId, List<CreateOrderItemRequest> items, String shippingAddress) {
-        this.customerId = customerId;
-        this.items = items;
-        this.shippingAddress = shippingAddress;
+import io.github.anthem37.ddd.common.cqrs.command.ICommand;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.common.cqrs.query.IQuery;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
+
+/**
+ * 应用服务标记接口
+ * 应用服务负责：
+ * 1. 业务用例编排
+ * 2. 事务管理
+ * 3. 权限控制
+ * 4. DTO转换
+ *
+ * @author anthem37
+ * @date 2025/8/13 16:45:32
+ */
+public interface IApplicationService {
+
+    /**
+     * 获取命令总线
+     */
+    ICommandBus getCommandBus();
+
+    /**
+     * 获取查询总线
+     */
+    IQueryBus getQueryBus();
+
+    /**
+     * 发送命令
+     */
+    default <R> R sendCommand(ICommand<R> command) {
+        return getCommandBus().send(command);
     }
-    
-    @Override
-    public boolean isValid() {
-        return StringUtils.hasText(customerId) 
-            && CollectionUtils.isNotEmpty(items)
-            && StringUtils.hasText(shippingAddress);
+
+    /**
+     * 发送查询
+     */
+    default <T extends IQuery<R>, R> R sendQuery(T query) {
+        return getQueryBus().send(query);
     }
-    
-    @Override
-    public String getBusinessIdentifier() {
-        return String.format("CreateOrder[Customer:%s, Items:%d]", customerId, items.size());
-    }
-    
-    // getters...
+
 }
 ```
 
-#### 命令处理器 (CommandHandler)
+### 2. CQRS 支持
+
+应用层使用位于 `ddd-common` 模块中的 CQRS 相关接口，包括：
+
+- `ICommand`: 命令标记接口，用于改变系统状态
+- `ICommandBus`: 命令总线接口，负责命令的路由和执行
+- `IQuery`: 查询标记接口，用于获取数据，不改变系统状态
+- `IQueryBus`: 查询总线接口，负责查询的路由和执行
+
+这些接口的具体实现由框架提供，应用层通过 `IApplicationService` 接口中的方法来使用这些功能。
+
+## 使用示例
 
 ```java
-// 命令处理器接口
-public interface ICommandHandler<C extends ICommand<R>, R> {
-    
-    /**
-     * 处理命令
-     */
-    R handle(C command);
-    
-    /**
-     * 获取支持的命令类型
-     */
-    Class<C> getSupportedCommandType();
-}
+@Service
+public class UserApplicationService implements IApplicationService {
 
-// 具体命令处理器实现
-@Component
-public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-    
+    private final ICommandBus commandBus;
+    private final IQueryBus queryBus;
+
     @Autowired
-    private IOrderRepository orderRepository;
-    
-    @Autowired
-    private ICustomerRepository customerRepository;
-    
-    @Autowired
-    private OrderDomainService orderDomainService;
-    
+    public UserApplicationService(ICommandBus commandBus, IQueryBus queryBus) {
+        this.commandBus = commandBus;
+        this.queryBus = queryBus;
+    }
+
+    @Override
+    public ICommandBus getCommandBus() {
+        return commandBus;
+    }
+
+    @Override
+    public IQueryBus getQueryBus() {
+        return queryBus;
+    }
+
+    public UserDTO createUser(CreateUserRequest request) {
+        // 转换请求为命令
+        CreateUserCommand command = new CreateUserCommand(
+            request.getUsername(),
+            request.getEmail(),
+            request.getPassword()
+        );
+
+        // 发送命令
+        UserId userId = sendCommand(command);
+
+        // 查询创建的用户
+        UserQuery query = new UserQuery(userId);
+        return sendQuery(query);
+    }
+}
+```
+
     @Override
     @Transactional
     public OrderId handle(CreateOrderCommand command) {

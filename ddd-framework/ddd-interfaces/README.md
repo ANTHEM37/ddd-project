@@ -54,49 +54,282 @@ public abstract class AbstractBaseRequest {
         this.requestId = UUID.randomUUID().toString();
         this.timestamp = System.currentTimeMillis();
     }
+
+    // getters and setters
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+}
+```
+
+#### 响应对象
+
+提供统一的响应格式：
+
+```java
+// 基础响应对象
+public class BaseResponse {
+    private boolean success;
+    private String message;
+    private String code;
+    private Long timestamp;
+
+    // 构造函数、getters and setters
+}
+
+// 数据响应对象
+public class DataResponse<T> extends BaseResponse {
+    private T data;
+
+    // 构造函数、getters and setters
+}
+
+// 错误响应对象
+public class ErrorResponse extends BaseResponse {
+    private String details;
+    private String requestId;
+
+    // 构造函数、getters and setters
+}
+
+// 分页结果响应对象
+public class PagedResult<T> extends BaseResponse {
+    private List<T> items;
+    private int pageIndex;
+    private int pageSize;
+    private long totalCount;
+    private int totalPages;
+
+    // 构造函数、getters and setters
 }
 ```
 
 #### 具体请求对象示例
 
 ```java
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CreateOrderRequest extends AbstractBaseRequest {
+public class CreateUserRequest extends AbstractBaseRequest {
 
-    @NotBlank(message = "客户ID不能为空")
-    private String customerId;
+    @NotBlank(message = "用户名不能为空")
+    private String username;
 
-    @NotEmpty(message = "订单项不能为空")
-    @Valid
-    private List<OrderItemRequest> items;
+    @NotBlank(message = "邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
+    private String email;
 
-    @NotBlank(message = "收货地址不能为空")
-    private String shippingAddress;
-
-    private String remark;
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, message = "密码长度不能少于6位")
+    private String password;
 
     @Override
     public boolean isValid() {
-        return StringUtils.hasText(customerId)
-                && CollectionUtils.isNotEmpty(items)
-                && StringUtils.hasText(shippingAddress)
-                && items.stream().allMatch(OrderItemRequest::isValid);
+        return StringUtils.hasText(username)
+                && StringUtils.hasText(email)
+                && StringUtils.hasText(password);
+    }
+}
+```
+
+### 2. DTO 组装器
+
+负责在领域模型和 DTO 之间进行转换：
+
+```java
+// 组装器接口
+public interface IDTOAssembler<D, M> {
+    D toDTO(M model);
+    M toModel(D dto);
+    List<D> toDTOList(Collection<M> models);
+    List<M> toModelList(Collection<D> dtos);
+}
+
+// 抽象组装器基类
+public abstract class AbstractDTOAssembler<D, M> implements IDTOAssembler<D, M> {
+
+    @Override
+    public List<D> toDTOList(Collection<M> models) {
+        if (CollectionUtils.isEmpty(models)) {
+            return Collections.emptyList();
+        }
+        return models.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<M> toModelList(Collection<D> dtos) {
+        if (CollectionUtils.isEmpty(dtos)) {
+            return Collections.emptyList();
+        }
+        return dtos.stream()
+                .map(this::toModel)
+                .collect(Collectors.toList());
+    }
+}
+```
+
+### 3. 门面层
+
+提供统一的接口访问入口和异常处理：
+
+```java
+// 抽象门面基类
+public abstract class AbstractBaseFacade {
+
+    /**
+     * 执行命令并返回结果
+     */
+    protected <R> R executeCommand(ICommand<R> command) {
+        // 命令执行逻辑
+    }
+
+    /**
+     * 执行查询并返回结果
+     */
+    protected <T extends IQuery<R>, R> R executeQuery(T query) {
+        // 查询执行逻辑
     }
 }
 
-@Data
-public class OrderItemRequest {
+// REST API 异常处理器
+@RestControllerAdvice
+public class RestApiExceptionHandler {
 
-    @NotBlank(message = "商品ID不能为空")
-    private String productId;
+    private static final Logger log = LoggerFactory.getLogger(RestApiExceptionHandler.class);
 
-    @Min(value = 1, message = "数量必须大于0")
-    private Integer quantity;
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        ErrorResponse response = new ErrorResponse();
+        response.setSuccess(false);
+        response.setMessage(ex.getMessage());
+        response.setCode(ex.getCode());
+        response.setDetails(ex.getDetails());
+        response.setRequestId(ex.getRequestId());
+        response.setTimestamp(System.currentTimeMillis());
 
-    @DecimalMin(value = "0.01", message = "单价必须大于0")
-    private BigDecimal unitPrice;
+        log.error("Business exception: {}", ex.getMessage(), ex);
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        ErrorResponse response = new ErrorResponse();
+        response.setSuccess(false);
+        response.setMessage("系统错误，请联系管理员");
+        response.setCode("SYSTEM_ERROR");
+        response.setDetails(ex.getMessage());
+        response.setTimestamp(System.currentTimeMillis());
+
+        log.error("System exception: {}", ex.getMessage(), ex);
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+## 使用示例
+
+### 1. 创建控制器
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    private final UserFacade userFacade;
+
+    @Autowired
+    public UserController(UserFacade userFacade) {
+        this.userFacade = userFacade;
+    }
+
+    @PostMapping
+    public ResponseEntity<DataResponse<UserDTO>> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserDTO user = userFacade.createUser(request);
+        return ResponseEntity.ok(new DataResponse<>(user));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DataResponse<UserDTO>> getUserById(@PathVariable String id) {
+        UserDTO user = userFacade.getUserById(id);
+        return ResponseEntity.ok(new DataResponse<>(user));
+    }
+
+    @GetMapping
+    public ResponseEntity<DataResponse<PagedResult<UserDTO>>> getUsers(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        PagedResult<UserDTO> users = userFacade.getUsers(pageIndex, pageSize);
+        return ResponseEntity.ok(new DataResponse<>(users));
+    }
+}
+```
+
+### 2. 创建门面实现
+
+```java
+@Service
+public class UserFacadeImpl extends AbstractBaseFacade implements UserFacade {
+
+    private final IApplicationService applicationService;
+    private final UserDTOAssembler userDTOAssembler;
+
+    @Autowired
+    public UserFacadeImpl(IApplicationService applicationService, UserDTOAssembler userDTOAssembler) {
+        this.applicationService = applicationService;
+        this.userDTOAssembler = userDTOAssembler;
+    }
+
+    @Override
+    public UserDTO createUser(CreateUserRequest request) {
+        CreateUserCommand command = new CreateUserCommand(
+                request.getUsername(),
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        UserId userId = applicationService.sendCommand(command);
+        UserQuery query = new UserQuery(userId);
+        User user = applicationService.sendQuery(query);
+
+        return userDTOAssembler.toDTO(user);
+    }
+
+    @Override
+    public UserDTO getUserById(String id) {
+        UserQuery query = new UserQuery(new UserId(id));
+        User user = applicationService.sendQuery(query);
+        return userDTOAssembler.toDTO(user);
+    }
+
+    @Override
+    public PagedResult<UserDTO> getUsers(int pageIndex, int pageSize) {
+        UserPageQuery query = new UserPageQuery(pageIndex, pageSize);
+        PagedResult<User> users = applicationService.sendQuery(query);
+        return new PagedResult<>(
+                userDTOAssembler.toDTOList(users.getItems()),
+                users.getPageIndex(),
+                users.getPageSize(),
+                users.getTotalCount(),
+                users.getTotalPages()
+        );
+    }
+}
+```
 
     public boolean isValid() {
         return StringUtils.hasText(productId)

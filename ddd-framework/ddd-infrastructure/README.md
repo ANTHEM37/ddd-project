@@ -8,9 +8,12 @@ DDD 框架的基础设施层模块，提供技术实现、数据持久化、外�
 ddd-infrastructure/
 ├── config/            # 自动配置
 ├── converter/         # 基础设施层转换器
+├── cqrs/              # CQRS实现
+│   └── bus/           # 命令和查询总线实现
 ├── messaging/         # 消息处理
-├── persistence/       # 数据持久化
-└── resources/         # 配置资源
+│   └── event/         # 领域事件处理
+└── persistence/       # 数据持久化
+    └── repository/    # 仓储实现
 ```
 
 ## 🏗️ 核心组件
@@ -22,7 +25,6 @@ ddd-infrastructure/
 框架的核心自动配置类，提供所有必要组件的自动装配。
 
 ```java
-
 @Slf4j
 @Configuration
 @EnableAsync
@@ -76,7 +78,6 @@ public class DDDFrameworkAutoConfiguration {
 异步执行器配置，为不同类型的操作提供专门的线程池。
 
 ```java
-
 @Configuration
 @EnableAsync
 @Slf4j
@@ -98,6 +99,128 @@ public class AsyncExecutorConfig {
         executor.initialize();
 
         log.info("初始化命令执行器: corePoolSize=5, maxPoolSize=10, queueCapacity=100");
+
+        return executor;
+    }
+
+    /**
+     * 查询执行器
+     * 用于处理读操作，通常线程数较多但执行时间较短
+     */
+    @Bean("queryExecutor")
+    @ConditionalOnMissingBean(name = "queryExecutor")
+    public Executor queryExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("Query-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+
+        log.info("初始化查询执行器: corePoolSize=10, maxPoolSize=20, queueCapacity=200");
+
+        return executor;
+    }
+
+    /**
+     * 事件执行器
+     * 用于处理领域事件，通常为异步执行
+     */
+    @Bean("eventExecutor")
+    @ConditionalOnMissingBean(name = "eventExecutor")
+    public Executor eventExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("Event-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+
+        log.info("初始化事件执行器: corePoolSize=5, maxPoolSize=10, queueCapacity=100");
+
+        return executor;
+    }
+}
+```
+
+### 2. CQRS 实现
+
+CQRS (命令查询职责分离) 模式的具体实现位于 `cqrs/bus/impl` 包下，包括：
+
+- `CommandBus`: 命令总线实现，负责命令的路由和执行
+- `QueryBus`: 查询总线实现，负责查询的路由和执行
+- `AbstractMessageBus`: 消息总线抽象基类，提供公共功能
+
+### 3. 转换器
+
+转换器组件位于 `converter` 包下，提供不同层级之间的数据转换功能：
+
+- `AbstractEventConverter`: 领域事件转换器抽象基类
+- `AbstractPersistenceConverter`: 持久化转换器抽象基类
+- `IEventConverter`: 事件转换器接口
+- `IPersistenceConverter`: 持久化转换器接口
+- `SpringConverterManager`: 转换器管理器实现
+
+### 4. 消息处理
+
+消息处理组件位于 `messaging/event` 包下，提供领域事件的发布和处理功能：
+
+- `AbstractEventHandler`: 事件处理器抽象基类
+- `SpringDomainEventPublisher`: 基于 Spring 的领域事件发布器实现
+
+### 5. 数据持久化
+
+数据持久化组件位于 `persistence/repository` 包下，提供仓储模式的实现：
+
+- `AbstractBaseRepository`: 仓储抽象基类，提供通用的 CRUD 操作
+
+## 使用示例
+
+### 1. 创建自定义仓储实现
+
+```java
+@Repository
+public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> implements IUserRepository {
+
+    public UserRepositoryImpl(JpaRepository<User, UserId> jpaRepository) {
+        super(jpaRepository);
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return jpaRepository.findOne((root, query, cb) -> {
+            return cb.equal(root.get("username"), username);
+        });
+    }
+
+    @Override
+    public List<User> findActiveUsers() {
+        return jpaRepository.findAll((root, query, cb) -> {
+            return cb.isTrue(root.get("active"));
+        });
+    }
+}
+```
+
+### 2. 创建领域事件处理器
+
+```java
+@Component
+public class OrderConfirmedEventHandler extends AbstractEventHandler<OrderConfirmedEvent> {
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Override
+    public void handle(OrderConfirmedEvent event) {
+        // 处理订单确认事件，例如发送通知
+        notificationService.sendOrderConfirmation(event.getOrderId(), event.getTotalAmount());
+    }
+}
+```
+
         return executor;
     }
 

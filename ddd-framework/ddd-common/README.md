@@ -1,6 +1,6 @@
 # DDD Common Module
 
-DDD 框架的通用模块，提供跨层使用的基础工具类、异常定义、业务规则接口和转换器注册中心。
+DDD 框架的通用模块，提供跨层使用的基础工具类、异常定义、业务规则接口、转换器注册中心和CQRS基础接口。
 
 ## 📦 模块结构
 
@@ -8,8 +8,13 @@ DDD 框架的通用模块，提供跨层使用的基础工具类、异常定义�
 ddd-common/
 ├── assertion/           # 断言工具
 ├── converter/          # 转换器注册中心
+├── cqrs/               # CQRS基础接口
+│   ├── command/        # 命令相关接口
+│   ├── converter/      # CQRS转换器
+│   └── query/          # 查询相关接口
 ├── exception/          # 异常定义
 ├── model/             # 通用模型接口
+├── orchestration/      # 业务编排工具
 └── util/              # 工具类
 ```
 
@@ -24,36 +29,20 @@ ddd-common/
 ```java
 // 非空断言
 Assert.notNull(user, "用户不能为空");
-Assert.
-
-hasText(username, "用户名不能为空");
-Assert.
-
-notEmpty(orderItems, "订单项不能为空");
+Assert.hasText(username, "用户名不能为空");
+Assert.notEmpty(orderItems, "订单项不能为空");
 
 // 条件断言
-Assert.
-
-isTrue(age >=18, "年龄必须大于等于18岁");
-Assert.
-
-isFalse(user.isDeleted(), "用户已被删除");
+Assert.isTrue(age >= 18, "年龄必须大于等于18岁");
+Assert.isFalse(user.isDeleted(), "用户已被删除");
 
 // 数值断言
-        Assert.
-
-isNotNegative(amount, "金额不能为负数");
-Assert.
-
-inRange(score, 0,100,"分数必须在0-100之间");
+Assert.isNotNegative(amount, "金额不能为负数");
+Assert.inRange(score, 0, 100, "分数必须在0-100之间");
 
 // 字符串断言
-Assert.
-
-hasLength(password, 6,20,"密码长度必须在6-20位之间");
-Assert.
-
-matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$","邮箱格式不正确");
+Assert.hasLength(password, 6, 20, "密码长度必须在6-20位之间");
+Assert.matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", "邮箱格式不正确");
 ```
 
 #### 业务规则断言
@@ -61,26 +50,17 @@ matches(email, "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$","邮箱格式不正确");
 ```java
 // 单个规则检查
 IBusinessRule rule = new UserCanPlaceOrderRule(user);
-Assert.
-
-isTrue(rule.isSatisfied(),rule.
-
-getMessage());
+Assert.isTrue(rule.isSatisfied(), rule.getMessage());
 
 // 多个规则检查
 IBusinessRule[] rules = {
-        new UserCanPlaceOrderRule(user),
-        new OrderAmountValidRule(amount),
-        new InventoryAvailableRule(productId, quantity)
+    new UserCanPlaceOrderRule(user),
+    new OrderAmountValidRule(amount),
+    new InventoryAvailableRule(productId, quantity)
 };
-for(
-IBusinessRule businessRule :rules){
-        Assert.
-
-isTrue(businessRule.isSatisfied(),businessRule.
-
-getMessage());
-        }
+for (IBusinessRule businessRule : rules) {
+    Assert.isTrue(businessRule.isSatisfied(), businessRule.getMessage());
+}
 ```
 
 #### 编排专用断言
@@ -88,15 +68,240 @@ getMessage());
 ```java
 // 编排流程中的断言，抛出 OrchestrationException
 Assert.orchestrationNotNull(command, "命令不能为空");
-Assert.
-
-orchestrationIsTrue(condition, "条件不满足");
-Assert.
-
-orchestrationFail("编排执行失败");
+Assert.orchestrationIsTrue(condition, "条件不满足");
+Assert.orchestrationFail("编排执行失败");
 ```
 
 ### 2. 异常体系
+
+提供统一的异常处理机制：
+
+```java
+// 业务异常
+public class BusinessException extends RuntimeException {
+    private String code;
+    private String details;
+    private String requestId;
+
+    // 构造函数、getters and setters
+}
+
+// 业务规则违反异常
+public class BusinessRuleViolationException extends BusinessException {
+    private IBusinessRule violatedRule;
+
+    // 构造函数、getters and setters
+}
+
+// 编排异常
+public class OrchestrationException extends BusinessException {
+    private String orchestrationId;
+    private Map<String, Object> contextData;
+
+    // 构造函数、getters and setters
+}
+```
+
+### 3. 业务规则接口
+
+```java
+public interface IBusinessRule {
+    /**
+     * 规则是否满足
+     */
+    boolean isSatisfied();
+
+    /**
+     * 获取规则违反时的消息
+     */
+    String getMessage();
+}
+
+// 规则实现示例
+public class UserCanPlaceOrderRule implements IBusinessRule {
+    private final User user;
+
+    public UserCanPlaceOrderRule(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public boolean isSatisfied() {
+        return user != null && !user.isBanned() && user.hasValidAddress();
+    }
+
+    @Override
+    public String getMessage() {
+        if (user == null) {
+            return "用户不存在";
+        }
+        if (user.isBanned()) {
+            return "用户已被禁用";
+        }
+        return "用户没有有效的地址";
+    }
+}
+```
+
+### 4. CQRS 基础接口
+
+#### 命令接口
+
+```java
+public interface ICommand<R> {
+    /**
+     * 命令验证
+     * 子类可以重写此方法进行自定义验证
+     *
+     * @return 验证是否通过
+     */
+    default boolean isValid() {
+        return true;
+    }
+}
+
+public interface ICommandHandler<C extends ICommand<R>, R> {
+    /**
+     * 处理命令
+     */
+    R handle(C command);
+
+    /**
+     * 获取支持的命令类型
+     */
+    Class<C> getSupportedCommandType();
+}
+
+public interface ICommandBus {
+    /**
+     * 发送命令并执行
+     */
+    <R> R send(ICommand<R> command);
+
+    /**
+     * 异步发送命令
+     */
+    <R> CompletableFuture<R> sendAsync(ICommand<R> command);
+
+    /**
+     * 获取已注册的处理器数量
+     */
+    int getHandlerCount();
+}
+```
+
+#### 查询接口
+
+```java
+public interface IQuery<R> {
+    /**
+     * 验证查询是否有效
+     * 子类可以重写此方法添加验证逻辑
+     *
+     * @return true表示查询有效，false表示无效
+     */
+    default boolean isValid() {
+        return true;
+    }
+}
+
+public interface IQueryHandler<Q extends IQuery<R>, R> {
+    /**
+     * 处理查询
+     */
+    R handle(Q query);
+
+    /**
+     * 获取支持的查询类型
+     */
+    Class<Q> getSupportedQueryType();
+}
+
+public interface IQueryBus {
+    /**
+     * 发送查询并执行
+     */
+    <R> R send(IQuery<R> query);
+
+    /**
+     * 异步发送查询
+     */
+    <R> CompletableFuture<R> sendAsync(IQuery<R> query);
+
+    /**
+     * 获取已注册的处理器数量
+     */
+    int getHandlerCount();
+}
+```
+
+### 5. 转换器注册中心
+
+```java
+public interface ConverterRegistry {
+    /**
+     * 转换器管理器
+     */
+    interface ConverterManager {
+        /**
+         * 注册转换器
+         */
+        <S, T> void registerConverter(Class<S> sourceType, Class<T> targetType, Function<S, T> converter);
+
+        /**
+         * 获取转换器
+         */
+        <S, T> Function<S, T> getConverter(Class<S> sourceType, Class<T> targetType);
+
+        /**
+         * 转换对象
+         */
+        <S, T> T convert(S source, Class<T> targetType);
+    }
+}
+```
+
+### 6. 业务编排工具
+
+```java
+public class Orchestration {
+    private final String orchestrationId;
+    private final Map<String, Object> contextData;
+
+    private Orchestration() {
+        this.orchestrationId = UUID.randomUUID().toString();
+        this.contextData = new HashMap<>();
+    }
+
+    public static Orchestration start() {
+        return new Orchestration();
+    }
+
+    public Orchestration with(String key, Object value) {
+        contextData.put(key, value);
+        return this;
+    }
+
+    public <T> T get(String key, Class<T> type) {
+        Object value = contextData.get(key);
+        return type.cast(value);
+    }
+
+    public <R> R execute(Function<Orchestration, R> action) {
+        return action.apply(this);
+    }
+
+    // getters
+}
+```
+
+### 7. 工具类
+
+提供常用的工具类：
+
+- `CollectionUtils`: 集合工具类
+- `ReflectionUtils`: 反射工具类
+- `StringUtils`: 字符串工具类
 
 #### BusinessException - 业务异常
 
