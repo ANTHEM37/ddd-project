@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.github.anthem37</groupId>
         <artifactId>ddd-example</artifactId>
-        <version>1.0.0-RELEASE</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>user-infrastructure</artifactId>

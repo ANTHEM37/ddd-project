@@ -427,35 +427,35 @@ flowchart TD
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-infrastructure</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 应用层（CQRS、编排等） -->
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-application</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 领域层（聚合根、实体等） -->
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-domain</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 接口层（DTO、门面等） -->
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-interfaces</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 通用工具（断言、异常等） -->
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-common</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -465,14 +465,14 @@ flowchart TD
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-infrastructure</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 必需：通用工具 -->
 <dependency>
     <groupId>io.github.anthem37</groupId>
     <artifactId>ddd-common</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <version>1.0.1-SNAPSHOT</version>
 </dependency>
 
 <!-- 可选：根据需要添加其他模块 -->
