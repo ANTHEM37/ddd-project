@@ -38,6 +38,17 @@ public class User extends AbstractAggregateRoot<UserId> {
     @Setter
     private LocalDateTime updatedAt;
 
+    // 用于持久化的构造函数
+    public User(UserId id, String username, Email email, String password, UserStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        super(id);
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     // 工厂方法 - 创建新用户
     public static User create(String username, Email email, String password) {
         UserId userId = UserId.generate();
@@ -88,17 +99,6 @@ public class User extends AbstractAggregateRoot<UserId> {
         this.email = newEmail;
         this.updatedAt = LocalDateTime.now();
         afterBusinessOperation();
-    }
-
-    // 用于持久化的构造函数
-    public User(UserId id, String username, Email email, String password, UserStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        super(id);
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     @Override

@@ -1,10 +1,10 @@
 package io.github.anthem37.ddd.common.orchestration;
 
+import io.github.anthem37.ddd.common.assertion.Assert;
 import io.github.anthem37.ddd.common.cqrs.command.ICommand;
 import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
 import io.github.anthem37.ddd.common.cqrs.query.IQuery;
 import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
-import io.github.anthem37.ddd.common.assertion.Assert;
 import io.github.anthem37.ddd.common.exception.OrchestrationException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

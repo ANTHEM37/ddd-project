@@ -8,6 +8,7 @@
 ## 框架概述
 
 `ddd-framework`是一个严格遵循DDD分层架构的框架，包含以下核心模块：
+
 - **ddd-common**: 通用工具和基础类
 - **ddd-interfaces**: 接口层（用户界面层）
 - **ddd-application**: 应用层
@@ -23,14 +24,17 @@
 `ddd-example`提供了一个基于框架实现的用户管理系统，展示了如何在实际项目中应用DDD架构。
 
 ## 技术栈
+
 - Java 8
 - Spring Boot 2.7.x
 - Maven
 
 ## 快速开始
+
 1. 构建项目: `mvn clean install`
 2. 查看框架文档: 阅读 ddd-framework/README.md
 3. 运行示例: 参考 ddd-example 中的说明
 
 ## 许可证
+
 本项目采用MIT许可证 - 详见LICENSE文件

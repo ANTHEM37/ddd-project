@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @MapperScan("io.github.anthem37.example.user.infrastructure.persistence.mapper")
 @EnableTransactionManagement
 public class UserApplication {
-    
+
     public static void main(String[] args) {
         SpringApplication.run(UserApplication.class, args);
     }

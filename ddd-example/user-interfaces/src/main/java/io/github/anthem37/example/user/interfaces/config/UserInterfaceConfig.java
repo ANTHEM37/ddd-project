@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class UserInterfaceConfig implements WebMvcConfigurer {
-    
+
     /**
      * 配置CORS跨域
      */

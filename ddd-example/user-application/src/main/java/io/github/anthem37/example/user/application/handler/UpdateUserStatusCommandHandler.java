@@ -15,27 +15,27 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 public class UpdateUserStatusCommandHandler implements ICommandHandler<UpdateUserStatusCommand, Void> {
-    
+
     private final IUserRepository userRepository;
-    
+
     public UpdateUserStatusCommandHandler(IUserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    
+
     @Override
     public Class<UpdateUserStatusCommand> getSupportedCommandType() {
         return UpdateUserStatusCommand.class;
     }
-    
+
     @Override
     @Transactional
     public Void handle(UpdateUserStatusCommand command) {
         UserId userId = UserId.of(command.getUserId());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + command.getUserId()));
-        
+
         UserStatus targetStatus = command.getStatus();
-        
+
         // 根据目标状态执行相应的业务操作
         switch (targetStatus) {
             case ACTIVE:
@@ -47,10 +47,10 @@ public class UpdateUserStatusCommandHandler implements ICommandHandler<UpdateUse
             default:
                 throw new IllegalArgumentException("不支持的状态变更: " + targetStatus);
         }
-        
+
         // 保存用户
         userRepository.save(user);
-        
+
         return null;
     }
 }

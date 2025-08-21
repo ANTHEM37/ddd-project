@@ -20,9 +20,9 @@ import java.time.LocalDateTime;
 public class UserCreatedEvent implements IDomainEvent {
 
     private final String eventType = "UserCreated";
+    private final LocalDateTime occurredOn = LocalDateTime.now();
     private UserId userId;
     private String username;
     private String email;
-    private final LocalDateTime occurredOn = LocalDateTime.now();
 
 }

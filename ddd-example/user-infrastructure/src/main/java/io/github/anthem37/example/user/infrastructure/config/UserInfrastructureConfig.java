@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class UserInfrastructureConfig {
-    
+
     /**
      * 配置用户领域服务
      */

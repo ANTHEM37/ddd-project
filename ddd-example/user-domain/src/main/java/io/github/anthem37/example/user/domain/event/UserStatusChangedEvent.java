@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 public class UserStatusChangedEvent implements IDomainEvent {
 
     private final String eventType = "UserStatusChanged";
+    private final LocalDateTime occurredOn = LocalDateTime.now();
     private UserId userId;
     private UserStatus oldStatus;
     private UserStatus newStatus;
-    private final LocalDateTime occurredOn = LocalDateTime.now();
 }

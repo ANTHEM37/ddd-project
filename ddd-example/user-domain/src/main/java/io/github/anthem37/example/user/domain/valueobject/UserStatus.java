@@ -9,25 +9,25 @@ public enum UserStatus {
     INACTIVE("停用"),
     LOCKED("锁定"),
     DELETED("已删除");
-    
+
     private final String description;
-    
+
     UserStatus(String description) {
         this.description = description;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public boolean isActive() {
         return this == ACTIVE;
     }
-    
+
     public boolean canBeActivated() {
         return this == INACTIVE || this == LOCKED;
     }
-    
+
     public boolean canBeDeactivated() {
         return this == ACTIVE;
     }

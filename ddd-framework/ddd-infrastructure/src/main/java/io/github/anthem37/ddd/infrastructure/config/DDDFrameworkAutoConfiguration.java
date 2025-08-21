@@ -1,12 +1,12 @@
 package io.github.anthem37.ddd.infrastructure.config;
 
-import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
-import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.CommandBus;
-import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
-import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.QueryBus;
 import io.github.anthem37.ddd.common.converter.ConverterRegistry;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
 import io.github.anthem37.ddd.domain.event.DomainEventPublisher;
 import io.github.anthem37.ddd.infrastructure.converter.SpringConverterManager;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.CommandBus;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.QueryBus;
 import io.github.anthem37.ddd.infrastructure.messaging.event.SpringDomainEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

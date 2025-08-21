@@ -130,12 +130,12 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
 ```java
 // 命令总线接口
 public interface ICommandBus {
-    
+
     /**
      * 同步发送命令
      */
     <R> R send(ICommand<R> command);
-    
+
     /**
      * 异步发送命令
      */
@@ -145,27 +145,27 @@ public interface ICommandBus {
 // 使用示例
 @Service
 public class OrderApplicationService {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     public OrderId createOrder(CreateOrderRequest request) {
         CreateOrderCommand command = new CreateOrderCommand(
-            request.getCustomerId(),
-            request.getItems(),
-            request.getShippingAddress()
+                request.getCustomerId(),
+                request.getItems(),
+                request.getShippingAddress()
         );
-        
+
         return commandBus.send(command);
     }
-    
+
     public CompletableFuture<OrderId> createOrderAsync(CreateOrderRequest request) {
         CreateOrderCommand command = new CreateOrderCommand(
-            request.getCustomerId(),
-            request.getItems(),
-            request.getShippingAddress()
+                request.getCustomerId(),
+                request.getItems(),
+                request.getShippingAddress()
         );
-        
+
         return commandBus.sendAsync(command);
     }
 }
@@ -178,12 +178,12 @@ public class OrderApplicationService {
 ```java
 // 查询接口
 public interface IQuery<R> {
-    
+
     /**
      * 验证查询是否有效
      */
     boolean isValid();
-    
+
     /**
      * 获取查询的业务标识
      */
@@ -194,23 +194,23 @@ public interface IQuery<R> {
 
 // 具体查询实现
 public class GetOrderQuery implements IQuery<OrderDTO> {
-    
+
     private final String orderId;
-    
+
     public GetOrderQuery(String orderId) {
         this.orderId = orderId;
     }
-    
+
     @Override
     public boolean isValid() {
         return StringUtils.hasText(orderId);
     }
-    
+
     @Override
     public String getBusinessIdentifier() {
         return String.format("GetOrder[%s]", orderId);
     }
-    
+
     public String getOrderId() {
         return orderId;
     }
@@ -219,24 +219,24 @@ public class GetOrderQuery implements IQuery<OrderDTO> {
 // 查询处理器
 @Component
 public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderDTO> {
-    
+
     @Autowired
     private IOrderRepository orderRepository;
-    
+
     @Autowired
     private OrderToDTOConverter converter;
-    
+
     @Override
     public OrderDTO handle(GetOrderQuery query) {
         Assert.isTrue(query.isValid(), "无效的获取订单查询");
-        
+
         OrderId orderId = OrderId.of(query.getOrderId());
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new BusinessException("订单不存在"));
-        
+                .orElseThrow(() -> new BusinessException("订单不存在"));
+
         return converter.convert(order);
     }
-    
+
     @Override
     public Class<GetOrderQuery> getSupportedQueryType() {
         return GetOrderQuery.class;
@@ -402,10 +402,10 @@ public class UserRegistrationOrchestration {
 ```java
 public void exportProcessDiagram() {
     Orchestration orchestration = buildOrderProcessOrchestration();
-    
+
     String plantUML = orchestration.toPlantUML();
     System.out.println(plantUML);
-    
+
     // 输出示例:
     // @startuml
     // !theme plain
@@ -533,7 +533,7 @@ public class OrderQueryRequestToQueryConverter
 
 ```java
 public interface IApplicationService {
-    
+
     /**
      * 获取服务名称
      */
@@ -546,56 +546,57 @@ public interface IApplicationService {
 #### 具体应用服务实现
 
 ```java
+
 @Service
 @Transactional
 public class OrderApplicationService implements IApplicationService {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     @Autowired
     private IQueryBus queryBus;
-    
+
     @Autowired
     private CreateOrderRequestToCommandConverter commandConverter;
-    
+
     @Autowired
     private OrderQueryRequestToQueryConverter queryConverter;
-    
+
     /**
      * 创建订单
      */
     public OrderDTO createOrder(CreateOrderRequest request) {
         // 转换为命令
         CreateOrderCommand command = commandConverter.toCommand(request);
-        
+
         // 发送命令
         OrderId orderId = commandBus.send(command);
-        
+
         // 查询创建的订单
         GetOrderQuery query = new GetOrderQuery(orderId.getValue());
         return queryBus.send(query);
     }
-    
+
     /**
      * 批量创建订单
      */
     public List<OrderDTO> createOrders(List<CreateOrderRequest> requests) {
         // 批量转换为命令
         List<CreateOrderCommand> commands = commandConverter.toCommands(requests);
-        
+
         // 批量执行命令
         List<OrderId> orderIds = commands.stream()
-            .map(commandBus::send)
-            .collect(Collectors.toList());
-        
+                .map(commandBus::send)
+                .collect(Collectors.toList());
+
         // 批量查询结果
         return orderIds.stream()
-            .map(orderId -> new GetOrderQuery(orderId.getValue()))
-            .map(queryBus::send)
-            .collect(Collectors.toList());
+                .map(orderId -> new GetOrderQuery(orderId.getValue()))
+                .map(queryBus::send)
+                .collect(Collectors.toList());
     }
-    
+
     /**
      * 获取订单
      */
@@ -603,7 +604,7 @@ public class OrderApplicationService implements IApplicationService {
         GetOrderQuery query = queryConverter.toQuery(request);
         return queryBus.send(query);
     }
-    
+
     /**
      * 取消订单
      */
@@ -611,18 +612,18 @@ public class OrderApplicationService implements IApplicationService {
         CancelOrderCommand command = new CancelOrderCommand(orderId, reason);
         commandBus.send(command);
     }
-    
+
     /**
      * 异步处理订单
      */
     public CompletableFuture<OrderDTO> processOrderAsync(CreateOrderRequest request) {
         CreateOrderCommand command = commandConverter.toCommand(request);
-        
+
         return commandBus.sendAsync(command)
-            .thenCompose(orderId -> {
-                GetOrderQuery query = new GetOrderQuery(orderId.getValue());
-                return CompletableFuture.completedFuture(queryBus.send(query));
-            });
+                .thenCompose(orderId -> {
+                    GetOrderQuery query = new GetOrderQuery(orderId.getValue());
+                    return CompletableFuture.completedFuture(queryBus.send(query));
+                });
     }
 }
 ```
@@ -633,22 +634,22 @@ public class OrderApplicationService implements IApplicationService {
 
 ```java
 public abstract class AbstractMessageBus<M, H> {
-    
+
     @Autowired
     protected ApplicationContext applicationContext;
-    
+
     protected final Map<Class<?>, H> handlerCache = new ConcurrentHashMap<>();
-    
+
     /**
      * 发送消息
      */
     protected <R> R send(M message) {
         Assert.notNull(message, getMessageTypeName() + "不能为空");
         Assert.isTrue(isValid(message), "无效的" + getMessageTypeName());
-        
+
         H handler = findHandler(message);
         Assert.notNull(handler, "未找到" + getMessageTypeName() + "处理器: " + message.getClass().getSimpleName());
-        
+
         try {
             return handleMessage(handler, message);
         } catch (Exception e) {
@@ -656,19 +657,23 @@ public abstract class AbstractMessageBus<M, H> {
             throw new BusinessException(getMessageTypeName() + "处理失败", e);
         }
     }
-    
+
     /**
      * 异步发送消息
      */
     protected <R> CompletableFuture<R> sendAsync(M message) {
         return CompletableFuture.supplyAsync(() -> send(message), getExecutor());
     }
-    
+
     // 抽象方法，由子类实现
     protected abstract String getMessageTypeName();
+
     protected abstract Executor getExecutor();
+
     protected abstract boolean isValid(M message);
+
     protected abstract <R> R handleMessage(H handler, M message);
+
     protected abstract H findHandler(M message);
 }
 ```
@@ -676,21 +681,25 @@ public abstract class AbstractMessageBus<M, H> {
 ## 🎯 设计原则
 
 ### 1. CQRS 分离
+
 - **命令职责**：处理写操作，改变系统状态
 - **查询职责**：处理读操作，不改变系统状态
 - **独立优化**：命令和查询可以独立优化和扩展
 
 ### 2. 业务编排
+
 - **可视化**：通过 PlantUML 实现流程可视化
 - **灵活性**：支持条件分支和复杂流程控制
 - **可测试**：每个节点都可以独立测试
 
 ### 3. 异步支持
+
 - **性能优化**：支持异步命令处理
 - **响应性**：提高系统响应性能
 - **可扩展**：支持分布式处理
 
 ### 4. 类型安全
+
 - **编译时检查**：通过泛型确保类型安全
 - **运行时验证**：通过断言确保运行时安全
 - **接口约束**：通过接口定义明确契约
@@ -705,20 +714,20 @@ public class CreateOrderCommand implements ICommand<OrderId> {
     private final String customerId;
     private final List<OrderItemRequest> items;
     private final String shippingAddress;
-    
+
     // 构造函数和验证逻辑...
 }
 
 public class GetOrderQuery implements IQuery<OrderDTO> {
     private final String orderId;
-    
+
     // 构造函数和验证逻辑...
 }
 
 // 2. 实现处理器
 @Component
 public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-    
+
     @Override
     @Transactional
     public OrderId handle(CreateOrderCommand command) {
@@ -731,12 +740,12 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
 
 @Component
 public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderDTO> {
-    
+
     @Override
     public OrderDTO handle(GetOrderQuery query) {
         // 查询逻辑处理
         Order order = orderRepository.findById(OrderId.of(query.getOrderId()))
-            .orElseThrow(() -> new BusinessException("订单不存在"));
+                .orElseThrow(() -> new BusinessException("订单不存在"));
         return orderConverter.convert(order);
     }
 }
@@ -744,22 +753,22 @@ public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderD
 // 3. 应用服务协调
 @Service
 public class OrderApplicationService {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     @Autowired
     private IQueryBus queryBus;
-    
+
     public OrderDTO processOrder(CreateOrderRequest request) {
         // 创建订单
         CreateOrderCommand command = new CreateOrderCommand(
-            request.getCustomerId(),
-            request.getItems(),
-            request.getShippingAddress()
+                request.getCustomerId(),
+                request.getItems(),
+                request.getShippingAddress()
         );
         OrderId orderId = commandBus.send(command);
-        
+
         // 查询订单详情
         GetOrderQuery query = new GetOrderQuery(orderId.getValue());
         return queryBus.send(query);
@@ -769,82 +778,82 @@ public class OrderApplicationService {
 // 4. 业务编排
 @Service
 public class ComplexOrderProcessOrchestration {
-    
+
     public void processComplexOrder(CreateOrderRequest request) {
         Orchestration orchestration = new Orchestration(
-            "complex-order-process",
-            "复杂订单处理流程",
-            commandBus,
-            queryBus
+                "complex-order-process",
+                "复杂订单处理流程",
+                commandBus,
+                queryBus
         );
-        
+
         orchestration
-            .addQuery("validate-customer", "验证客户", 
-                ctx -> new ValidateCustomerQuery(request.getCustomerId()))
-            .addQuery("check-credit", "检查信用", 
-                ctx -> new CheckCustomerCreditQuery(request.getCustomerId()))
-            .addCondition("credit-sufficient", "信用充足", 
-                ctx -> {
-                    CreditCheckResult result = ctx.getResult("check-credit", CreditCheckResult.class);
-                    return result.isApproved();
-                })
-            .addQuery("check-inventory", "检查库存", 
-                ctx -> new CheckInventoryQuery(request.getItems()))
-            .addCondition("inventory-available", "库存可用", 
-                ctx -> {
-                    InventoryResult result = ctx.getResult("check-inventory", InventoryResult.class);
-                    return result.isAvailable();
-                })
-            .addCommand("reserve-inventory", "预留库存", 
-                ctx -> new ReserveInventoryCommand(request.getItems()))
-            .addCommand("create-order", "创建订单", 
-                ctx -> new CreateOrderCommand(request))
-            .addCommand("process-payment", "处理支付", 
-                ctx -> {
-                    OrderId orderId = ctx.getResult("create-order", OrderId.class);
-                    return new ProcessPaymentCommand(orderId, request.getPaymentInfo());
-                })
-            .addCondition("payment-success", "支付成功", 
-                ctx -> {
-                    PaymentResult result = ctx.getResult("process-payment", PaymentResult.class);
-                    return result.isSuccess();
-                })
-            .addCommand("confirm-order", "确认订单", 
-                ctx -> {
-                    OrderId orderId = ctx.getResult("create-order", OrderId.class);
-                    return new ConfirmOrderCommand(orderId);
-                })
-            .addCommand("release-inventory", "释放库存", 
-                ctx -> new ReleaseInventoryCommand(request.getItems()))
-            .addCommand("cancel-order", "取消订单", 
-                ctx -> {
-                    OrderId orderId = ctx.getResult("create-order", OrderId.class);
-                    return new CancelOrderCommand(orderId, "支付失败");
-                })
-            
-            // 连接流程
-            .connect("validate-customer", "check-credit")
-            .connect("check-credit", "credit-sufficient")
-            .connectWhenTrue("credit-sufficient", "check-inventory")
-            .connect("check-inventory", "inventory-available")
-            .connectWhenTrue("inventory-available", "reserve-inventory")
-            .connect("reserve-inventory", "create-order")
-            .connect("create-order", "process-payment")
-            .connect("process-payment", "payment-success")
-            .connectWhenTrue("payment-success", "confirm-order")
-            .connectWhenFalse("payment-success", "release-inventory")
-            .connect("release-inventory", "cancel-order");
-        
+                .addQuery("validate-customer", "验证客户",
+                        ctx -> new ValidateCustomerQuery(request.getCustomerId()))
+                .addQuery("check-credit", "检查信用",
+                        ctx -> new CheckCustomerCreditQuery(request.getCustomerId()))
+                .addCondition("credit-sufficient", "信用充足",
+                        ctx -> {
+                            CreditCheckResult result = ctx.getResult("check-credit", CreditCheckResult.class);
+                            return result.isApproved();
+                        })
+                .addQuery("check-inventory", "检查库存",
+                        ctx -> new CheckInventoryQuery(request.getItems()))
+                .addCondition("inventory-available", "库存可用",
+                        ctx -> {
+                            InventoryResult result = ctx.getResult("check-inventory", InventoryResult.class);
+                            return result.isAvailable();
+                        })
+                .addCommand("reserve-inventory", "预留库存",
+                        ctx -> new ReserveInventoryCommand(request.getItems()))
+                .addCommand("create-order", "创建订单",
+                        ctx -> new CreateOrderCommand(request))
+                .addCommand("process-payment", "处理支付",
+                        ctx -> {
+                            OrderId orderId = ctx.getResult("create-order", OrderId.class);
+                            return new ProcessPaymentCommand(orderId, request.getPaymentInfo());
+                        })
+                .addCondition("payment-success", "支付成功",
+                        ctx -> {
+                            PaymentResult result = ctx.getResult("process-payment", PaymentResult.class);
+                            return result.isSuccess();
+                        })
+                .addCommand("confirm-order", "确认订单",
+                        ctx -> {
+                            OrderId orderId = ctx.getResult("create-order", OrderId.class);
+                            return new ConfirmOrderCommand(orderId);
+                        })
+                .addCommand("release-inventory", "释放库存",
+                        ctx -> new ReleaseInventoryCommand(request.getItems()))
+                .addCommand("cancel-order", "取消订单",
+                        ctx -> {
+                            OrderId orderId = ctx.getResult("create-order", OrderId.class);
+                            return new CancelOrderCommand(orderId, "支付失败");
+                        })
+
+                // 连接流程
+                .connect("validate-customer", "check-credit")
+                .connect("check-credit", "credit-sufficient")
+                .connectWhenTrue("credit-sufficient", "check-inventory")
+                .connect("check-inventory", "inventory-available")
+                .connectWhenTrue("inventory-available", "reserve-inventory")
+                .connect("reserve-inventory", "create-order")
+                .connect("create-order", "process-payment")
+                .connect("process-payment", "payment-success")
+                .connectWhenTrue("payment-success", "confirm-order")
+                .connectWhenFalse("payment-success", "release-inventory")
+                .connect("release-inventory", "cancel-order");
+
         // 执行编排
         Orchestration.Context context = new Orchestration.Context("complex-order-001");
         context.setVariable("request", request);
-        
+
         Orchestration.Result result = orchestration.execute(context);
-        
+
         if (!result.isSuccess()) {
             throw new BusinessException("订单处理失败: " + result.getErrorMessage());
         }
-        
+
         // 导出流程图用于文档
         String plantUML = orchestration.toPlantUML();
         saveProcessDiagram("complex-order-process", plantUML);
@@ -855,7 +864,9 @@ public class ComplexOrderProcessOrchestration {
 ## 🔗 依赖关系
 
 ### Maven 依赖
+
 ```xml
+
 <dependencies>
     <dependency>
         <groupId>io.github.anthem37</groupId>
@@ -877,6 +888,7 @@ public class ComplexOrderProcessOrchestration {
 ```
 
 ### 模块依赖
+
 - **依赖**：ddd-common、ddd-domain
 - **被依赖**：ddd-interfaces、ddd-infrastructure
 - **协调**：领域层和基础设施层
@@ -886,33 +898,34 @@ public class ComplexOrderProcessOrchestration {
 应用层测试专注于业务流程和集成测试：
 
 ```java
+
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class OrderApplicationServiceTest {
-    
+
     @Autowired
     private OrderApplicationService orderApplicationService;
-    
+
     @MockBean
     private IOrderRepository orderRepository;
-    
+
     @Test
     void should_create_order_successfully() {
         // Given
         CreateOrderRequest request = CreateOrderRequest.builder()
-            .customerId("customer-001")
-            .items(Arrays.asList(
-                OrderItemRequest.builder()
-                    .productId("product-001")
-                    .quantity(2)
-                    .build()
-            ))
-            .shippingAddress("北京市朝阳区")
-            .build();
-        
+                .customerId("customer-001")
+                .items(Arrays.asList(
+                        OrderItemRequest.builder()
+                                .productId("product-001")
+                                .quantity(2)
+                                .build()
+                ))
+                .shippingAddress("北京市朝阳区")
+                .build();
+
         // When
         OrderDTO result = orderApplicationService.createOrder(request);
-        
+
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getCustomerId()).isEqualTo("customer-001");
@@ -922,32 +935,32 @@ class OrderApplicationServiceTest {
 
 @ExtendWith(MockitoExtension.class)
 class OrchestrationTest {
-    
+
     @Mock
     private ICommandBus commandBus;
-    
+
     @Mock
     private IQueryBus queryBus;
-    
+
     @Test
     void should_execute_orchestration_successfully() {
         // Given
         when(queryBus.send(any(ValidateCustomerQuery.class)))
-            .thenReturn(ValidationResult.success());
+                .thenReturn(ValidationResult.success());
         when(commandBus.send(any(CreateOrderCommand.class)))
-            .thenReturn(OrderId.of("order-001"));
-        
+                .thenReturn(OrderId.of("order-001"));
+
         Orchestration orchestration = new Orchestration(
-            "test-process", "测试流程", commandBus, queryBus);
-        
+                "test-process", "测试流程", commandBus, queryBus);
+
         orchestration
-            .addQuery("validate", "验证", ctx -> new ValidateCustomerQuery("customer-001"))
-            .addCommand("create", "创建", ctx -> new CreateOrderCommand("customer-001"))
-            .connect("validate", "create");
-        
+                .addQuery("validate", "验证", ctx -> new ValidateCustomerQuery("customer-001"))
+                .addCommand("create", "创建", ctx -> new CreateOrderCommand("customer-001"))
+                .connect("validate", "create");
+
         // When
         Orchestration.Result result = orchestration.execute();
-        
+
         // Then
         assertThat(result.isSuccess()).isTrue();
         verify(queryBus).send(any(ValidateCustomerQuery.class));
@@ -973,6 +986,7 @@ class OrchestrationTest {
 框架提供自动配置，无需手动配置：
 
 ```java
+
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
@@ -986,15 +1000,16 @@ public class Application {
 如需自定义配置，可以覆盖默认配置：
 
 ```java
+
 @Configuration
 public class CustomDDDConfiguration {
-    
+
     @Bean
     @Primary
     public ICommandBus customCommandBus(@Qualifier("commandExecutor") Executor executor) {
         return new CustomCommandBus(executor);
     }
-    
+
     @Bean
     @Primary
     public IQueryBus customQueryBus(@Qualifier("queryExecutor") Executor executor) {
@@ -1008,10 +1023,11 @@ public class CustomDDDConfiguration {
 可以自定义命令和查询的执行器：
 
 ```java
+
 @Configuration
 @EnableAsync
 public class ExecutorConfiguration {
-    
+
     @Bean("commandExecutor")
     public Executor commandExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -1022,7 +1038,7 @@ public class ExecutorConfiguration {
         executor.initialize();
         return executor;
     }
-    
+
     @Bean("queryExecutor")
     public Executor queryExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -1041,25 +1057,26 @@ public class ExecutorConfiguration {
 ### 异步处理
 
 ```java
+
 @Service
 public class OrderApplicationService {
-    
+
     @Autowired
     private ICommandBus commandBus;
-    
+
     // 异步处理大批量订单
     public CompletableFuture<List<OrderId>> createOrdersBatch(List<CreateOrderRequest> requests) {
         List<CompletableFuture<OrderId>> futures = requests.stream()
-            .map(request -> {
-                CreateOrderCommand command = new CreateOrderCommand(request);
-                return commandBus.sendAsync(command);
-            })
-            .collect(Collectors.toList());
-        
+                .map(request -> {
+                    CreateOrderCommand command = new CreateOrderCommand(request);
+                    return commandBus.sendAsync(command);
+                })
+                .collect(Collectors.toList());
+
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-            .thenApply(v -> futures.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList()));
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
     }
 }
 ```
@@ -1067,12 +1084,13 @@ public class OrderApplicationService {
 ### 缓存优化
 
 ```java
+
 @Component
 public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderDTO> {
-    
+
     @Autowired
     private IOrderRepository orderRepository;
-    
+
     @Cacheable(value = "orders", key = "#query.orderId")
     @Override
     public OrderDTO handle(GetOrderQuery query) {
@@ -1084,20 +1102,21 @@ public class GetOrderQueryHandler implements IQueryHandler<GetOrderQuery, OrderD
 ### 批量处理
 
 ```java
+
 @Component
 public class BatchOrderQueryHandler implements IQueryHandler<BatchOrderQuery, List<OrderDTO>> {
-    
+
     @Override
     public List<OrderDTO> handle(BatchOrderQuery query) {
         // 批量查询优化
         List<OrderId> orderIds = query.getOrderIds();
         Map<OrderId, Order> orderMap = orderRepository.findByIds(orderIds);
-        
+
         return orderIds.stream()
-            .map(orderMap::get)
-            .filter(Objects::nonNull)
-            .map(orderConverter::convert)
-            .collect(Collectors.toList());
+                .map(orderMap::get)
+                .filter(Objects::nonNull)
+                .map(orderConverter::convert)
+                .collect(Collectors.toList());
     }
 }
 ```
@@ -1107,23 +1126,24 @@ public class BatchOrderQueryHandler implements IQueryHandler<BatchOrderQuery, Li
 ### 处理器监控
 
 ```java
+
 @Component
 @Slf4j
 public class MonitoringCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-    
+
     @Autowired
     private MeterRegistry meterRegistry;
-    
+
     @Override
     public OrderId handle(CreateOrderCommand command) {
         Timer.Sample sample = Timer.start(meterRegistry);
-        
+
         try {
             OrderId result = doHandle(command);
-            
+
             // 记录成功指标
             meterRegistry.counter("command.success", "type", "CreateOrder").increment();
-            
+
             return result;
         } catch (Exception e) {
             // 记录失败指标
@@ -1131,11 +1151,11 @@ public class MonitoringCommandHandler implements ICommandHandler<CreateOrderComm
             throw e;
         } finally {
             sample.stop(Timer.builder("command.duration")
-                .tag("type", "CreateOrder")
-                .register(meterRegistry));
+                    .tag("type", "CreateOrder")
+                    .register(meterRegistry));
         }
     }
-    
+
     private OrderId doHandle(CreateOrderCommand command) {
         // 实际处理逻辑
     }
@@ -1145,28 +1165,29 @@ public class MonitoringCommandHandler implements ICommandHandler<CreateOrderComm
 ### 编排监控
 
 ```java
+
 @Service
 public class MonitoredOrchestrationService {
-    
+
     public void executeWithMonitoring(Orchestration orchestration) {
         long startTime = System.currentTimeMillis();
-        
+
         try {
             Orchestration.Result result = orchestration.execute();
-            
+
             long duration = System.currentTimeMillis() - startTime;
-            log.info("编排执行完成: {}, 耗时: {}ms, 成功: {}", 
-                orchestration.getName(), duration, result.isSuccess());
-            
+            log.info("编排执行完成: {}, 耗时: {}ms, 成功: {}",
+                    orchestration.getName(), duration, result.isSuccess());
+
             if (!result.isSuccess()) {
-                log.error("编排执行失败: {}, 错误: {}", 
-                    orchestration.getName(), result.getErrorMessage());
+                log.error("编排执行失败: {}, 错误: {}",
+                        orchestration.getName(), result.getErrorMessage());
             }
-            
+
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
-            log.error("编排执行异常: {}, 耗时: {}ms", 
-                orchestration.getName(), duration, e);
+            log.error("编排执行异常: {}, 耗时: {}ms",
+                    orchestration.getName(), duration, e);
             throw e;
         }
     }
@@ -1178,42 +1199,43 @@ public class MonitoredOrchestrationService {
 ### 常见问题
 
 1. **处理器未找到**
-   - 检查处理器是否标注了 `@Component`
-   - 确认 `getSupportedCommandType()` 返回正确的类型
-   - 验证包扫描路径是否包含处理器类
+    - 检查处理器是否标注了 `@Component`
+    - 确认 `getSupportedCommandType()` 返回正确的类型
+    - 验证包扫描路径是否包含处理器类
 
 2. **编排执行失败**
-   - 检查节点连接是否正确
-   - 验证条件判断逻辑
-   - 确认所有必需的节点都已定义
+    - 检查节点连接是否正确
+    - 验证条件判断逻辑
+    - 确认所有必需的节点都已定义
 
 3. **异步处理超时**
-   - 调整线程池配置
-   - 检查处理器执行时间
-   - 考虑增加超时配置
+    - 调整线程池配置
+    - 检查处理器执行时间
+    - 考虑增加超时配置
 
 ### 调试技巧
 
 ```java
+
 @Component
 @Slf4j
 public class DebuggingCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-    
+
     @Override
     public OrderId handle(CreateOrderCommand command) {
         log.debug("开始处理命令: {}", command.getBusinessIdentifier());
-        
+
         try {
             // 处理逻辑
             OrderId result = processOrder(command);
-            
-            log.debug("命令处理成功: {}, 结果: {}", 
-                command.getBusinessIdentifier(), result);
-            
+
+            log.debug("命令处理成功: {}, 结果: {}",
+                    command.getBusinessIdentifier(), result);
+
             return result;
         } catch (Exception e) {
-            log.error("命令处理失败: {}, 错误: {}", 
-                command.getBusinessIdentifier(), e.getMessage(), e);
+            log.error("命令处理失败: {}, 错误: {}",
+                    command.getBusinessIdentifier(), e.getMessage(), e);
             throw e;
         }
     }

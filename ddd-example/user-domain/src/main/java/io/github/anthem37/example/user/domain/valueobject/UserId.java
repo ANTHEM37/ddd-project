@@ -11,20 +11,20 @@ import java.util.UUID;
  */
 @Getter
 public class UserId extends AbstractValueObject {
-    
+
     private final String value;
-    
+
     private UserId(String value) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException("用户ID不能为空");
         }
         this.value = value;
     }
-    
+
     public static UserId of(String value) {
         return new UserId(value);
     }
-    
+
     public static UserId generate() {
         return new UserId(UUID.randomUUID().toString());
     }
@@ -33,12 +33,12 @@ public class UserId extends AbstractValueObject {
     protected Object[] getEqualityComponents() {
         return new Object[]{value};
     }
-    
+
     @Override
     public String toString() {
         return value;
     }
-    
+
     @Override
     public AbstractValueObject copy() {
         return new UserId(this.value);

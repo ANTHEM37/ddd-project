@@ -22,6 +22,7 @@ ddd-infrastructure/
 框架的核心自动配置类，提供所有必要组件的自动装配。
 
 ```java
+
 @Slf4j
 @Configuration
 @EnableAsync
@@ -54,7 +55,7 @@ public class DDDFrameworkAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(DomainEventPublisher.EventPublisher.class)
     public DomainEventPublisher.EventPublisher domainEventPublisher(
-            ApplicationEventPublisher applicationEventPublisher, 
+            ApplicationEventPublisher applicationEventPublisher,
             @Qualifier("eventExecutor") Executor eventExecutor) {
         return new SpringDomainEventPublisher(applicationEventPublisher, eventExecutor);
     }
@@ -75,6 +76,7 @@ public class DDDFrameworkAutoConfiguration {
 异步执行器配置，为不同类型的操作提供专门的线程池。
 
 ```java
+
 @Configuration
 @EnableAsync
 @Slf4j
@@ -94,7 +96,7 @@ public class AsyncExecutorConfig {
         executor.setThreadNamePrefix("Command-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("初始化命令执行器: corePoolSize=5, maxPoolSize=10, queueCapacity=100");
         return executor;
     }
@@ -113,7 +115,7 @@ public class AsyncExecutorConfig {
         executor.setThreadNamePrefix("Query-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("初始化查询执行器: corePoolSize=10, maxPoolSize=20, queueCapacity=200");
         return executor;
     }
@@ -132,7 +134,7 @@ public class AsyncExecutorConfig {
         executor.setThreadNamePrefix("Event-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("初始化事件执行器: corePoolSize=8, maxPoolSize=16, queueCapacity=500");
         return executor;
     }
@@ -146,6 +148,7 @@ public class AsyncExecutorConfig {
 Spring 集成的领域事件发布器，将领域事件转换为 Spring 应用事件。
 
 ```java
+
 @Slf4j
 @RequiredArgsConstructor
 public class SpringDomainEventPublisher implements DomainEventPublisher.EventPublisher, InitializingBean {
@@ -156,7 +159,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher.EventPub
     @Override
     public void publish(IDomainEvent event) {
         Assert.notNull(event, "领域事件不能为空");
-        
+
         try {
             // 异步发布事件
             CompletableFuture.runAsync(() -> {
@@ -167,7 +170,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher.EventPub
                     log.error("领域事件发布失败: {}, 错误: {}", event.getEventType(), e.getMessage(), e);
                 }
             }, eventExecutor);
-            
+
         } catch (Exception e) {
             log.error("领域事件发布异常: {}, 错误: {}", event.getEventType(), e.getMessage(), e);
         }
@@ -236,8 +239,8 @@ public abstract class AbstractEventHandler<T extends IDomainEvent> {
     protected void handleError(T event, Exception e) {
         // 默认实现：记录错误日志
         // 子类可以重写实现自定义错误处理逻辑，如重试、死信队列等
-        log.error("事件处理错误，事件类型: {}, 聚合ID: {}, 错误信息: {}", 
-            event.getEventType(), event.getAggregateId(), e.getMessage());
+        log.error("事件处理错误，事件类型: {}, 聚合ID: {}, 错误信息: {}",
+                event.getEventType(), event.getAggregateId(), e.getMessage());
     }
 }
 ```
@@ -245,6 +248,7 @@ public abstract class AbstractEventHandler<T extends IDomainEvent> {
 #### 具体事件处理器示例
 
 ```java
+
 @Component
 @Slf4j
 public class OrderCreatedEventHandler extends AbstractEventHandler<OrderCreatedEvent> {
@@ -258,16 +262,16 @@ public class OrderCreatedEventHandler extends AbstractEventHandler<OrderCreatedE
     @Override
     protected void doHandle(OrderCreatedEvent event) {
         String orderId = event.getAggregateId();
-        
+
         // 发送订单确认邮件
         sendOrderConfirmationEmail(orderId);
-        
+
         // 更新库存
         updateInventory(event.getOrderItems());
-        
+
         // 记录业务日志
-        log.info("订单创建事件处理完成: orderId={}, amount={}", 
-            orderId, event.getTotalAmount());
+        log.info("订单创建事件处理完成: orderId={}, amount={}",
+                orderId, event.getTotalAmount());
     }
 
     @Override
@@ -298,12 +302,12 @@ public class OrderCreatedEventHandler extends AbstractEventHandler<OrderCreatedE
     @Override
     protected void handleError(OrderCreatedEvent event, Exception e) {
         super.handleError(event, e);
-        
+
         // 订单创建事件处理失败的特殊处理
         // 可能需要回滚订单状态或发送告警
         String orderId = event.getAggregateId();
         log.error("订单创建事件处理失败，可能需要人工介入: orderId={}", orderId);
-        
+
         // 发送告警通知
         // alertService.sendAlert("订单事件处理失败", orderId, e.getMessage());
     }
@@ -324,15 +328,15 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
     @Override
     public void save(T aggregate) {
         Assert.notNull(aggregate, "聚合根不能为空");
-        
+
         try {
             doSave(aggregate);
-            
+
             // 发布领域事件
             if (aggregate instanceof AbstractAggregateRoot) {
                 publishDomainEvents((AbstractAggregateRoot<?>) aggregate);
             }
-            
+
             log.debug("聚合根保存成功: {}", getAggregateIdentifier(aggregate));
         } catch (Exception e) {
             log.error("聚合根保存失败: {}, 错误: {}", getAggregateIdentifier(aggregate), e.getMessage(), e);
@@ -343,7 +347,7 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
     @Override
     public Optional<T> findById(ID id) {
         Assert.notNull(id, "ID不能为空");
-        
+
         try {
             T aggregate = doFindById(id);
             log.debug("聚合根查询: id={}, found={}", id, aggregate != null);
@@ -357,20 +361,20 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
     @Override
     public void delete(T aggregate) {
         Assert.notNull(aggregate, "聚合根不能为空");
-        
+
         try {
             // 标记为删除
             if (aggregate instanceof AbstractAggregateRoot) {
                 ((AbstractAggregateRoot<?>) aggregate).safeRemove();
             }
-            
+
             doDelete(aggregate);
-            
+
             // 发布领域事件
             if (aggregate instanceof AbstractAggregateRoot) {
                 publishDomainEvents((AbstractAggregateRoot<?>) aggregate);
             }
-            
+
             log.debug("聚合根删除成功: {}", getAggregateIdentifier(aggregate));
         } catch (Exception e) {
             log.error("聚合根删除失败: {}, 错误: {}", getAggregateIdentifier(aggregate), e.getMessage(), e);
@@ -389,7 +393,7 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
     @Override
     public boolean existsById(ID id) {
         Assert.notNull(id, "ID不能为空");
-        
+
         try {
             boolean exists = doExistsById(id);
             log.debug("聚合根存在性检查: id={}, exists={}", id, exists);
@@ -405,7 +409,7 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
      */
     private void publishDomainEvents(AbstractAggregateRoot<?> aggregate) {
         List<IDomainEvent> events = aggregate.getDomainEvents();
-        
+
         for (IDomainEvent event : events) {
             try {
                 DomainEventPublisher.publish(event);
@@ -413,10 +417,10 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
                 log.error("领域事件发布失败: {}, 错误: {}", event.getEventType(), e.getMessage(), e);
             }
         }
-        
+
         // 清除已发布的事件
         aggregate.clearDomainEvents();
-        
+
         if (!events.isEmpty()) {
             log.debug("发布了 {} 个领域事件", events.size());
         }
@@ -434,8 +438,11 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
 
     // 抽象方法，由具体实现类提供
     protected abstract void doSave(T aggregate);
+
     protected abstract T doFindById(ID id);
+
     protected abstract void doDelete(T aggregate);
+
     protected abstract boolean doExistsById(ID id);
 }
 ```
@@ -443,6 +450,7 @@ public abstract class AbstractBaseRepository<T, ID> implements IRepository<T, ID
 #### 具体仓储实现示例
 
 ```java
+
 @Repository
 @Transactional
 public class OrderRepository extends AbstractBaseRepository<Order, OrderId> implements IOrderRepository {
@@ -482,24 +490,24 @@ public class OrderRepository extends AbstractBaseRepository<Order, OrderId> impl
     public List<Order> findByCustomerId(CustomerId customerId) {
         List<OrderPO> orderPOs = jpaRepository.findByCustomerId(customerId.getValue());
         return orderPOs.stream()
-            .map(orderPOToOrderConverter::convert)
-            .collect(Collectors.toList());
+                .map(orderPOToOrderConverter::convert)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Order> findByStatus(OrderStatus status) {
         List<OrderPO> orderPOs = jpaRepository.findByStatus(status.name());
         return orderPOs.stream()
-            .map(orderPOToOrderConverter::convert)
-            .collect(Collectors.toList());
+                .map(orderPOToOrderConverter::convert)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Order> findByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<OrderPO> orderPOs = jpaRepository.findByCreatedAtBetween(startDate, endDate);
         return orderPOs.stream()
-            .map(orderPOToOrderConverter::convert)
-            .collect(Collectors.toList());
+                .map(orderPOToOrderConverter::convert)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -511,13 +519,13 @@ public class OrderRepository extends AbstractBaseRepository<Order, OrderId> impl
 // JPA Repository 接口
 @Repository
 public interface JpaOrderRepository extends JpaRepository<OrderPO, String> {
-    
+
     List<OrderPO> findByCustomerId(String customerId);
-    
+
     List<OrderPO> findByStatus(String status);
-    
+
     List<OrderPO> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
-    
+
     long countByCustomerId(String customerId);
 }
 ```
@@ -529,6 +537,7 @@ public interface JpaOrderRepository extends JpaRepository<OrderPO, String> {
 Spring 集成的转换器管理器，利用 Spring 容器管理转换器。
 
 ```java
+
 @Component
 @Slf4j
 public class SpringConverterManager implements ConverterRegistry.ConverterManager, InitializingBean {
@@ -587,21 +596,21 @@ public class SpringConverterManager implements ConverterRegistry.ConverterManage
 ```java
 // 持久化转换器接口
 public interface IPersistenceConverter<S, T> {
-    
+
     /**
      * 转换对象
      */
     T convert(S source);
-    
+
     /**
      * 批量转换
      */
     default List<T> convertList(List<S> sources) {
         return sources.stream()
-            .map(this::convert)
-            .collect(Collectors.toList());
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
-    
+
     /**
      * 检查是否支持转换
      */
@@ -610,13 +619,13 @@ public interface IPersistenceConverter<S, T> {
 
 // 抽象持久化转换器
 public abstract class AbstractPersistenceConverter<S, T> implements IPersistenceConverter<S, T> {
-    
+
     @Override
     public T convert(S source) {
         Assert.notNull(source, "源对象不能为空");
         return doConvert(source);
     }
-    
+
     /**
      * 具体的转换逻辑
      */
@@ -626,10 +635,10 @@ public abstract class AbstractPersistenceConverter<S, T> implements IPersistence
 // 具体转换器实现
 @Component
 public class OrderToPOConverter extends AbstractPersistenceConverter<Order, OrderPO> {
-    
+
     @Autowired
     private OrderItemToPOConverter itemConverter;
-    
+
     @Override
     protected OrderPO doConvert(Order order) {
         OrderPO orderPO = new OrderPO();
@@ -643,57 +652,57 @@ public class OrderToPOConverter extends AbstractPersistenceConverter<Order, Orde
         orderPO.setCreatedAt(order.getCreatedAt());
         orderPO.setUpdatedAt(order.getUpdatedAt());
         orderPO.setVersion(order.getVersion());
-        
+
         // 转换订单项
         List<OrderItemPO> itemPOs = order.getItems().stream()
-            .map(itemConverter::convert)
-            .collect(Collectors.toList());
+                .map(itemConverter::convert)
+                .collect(Collectors.toList());
         orderPO.setItems(itemPOs);
-        
+
         return orderPO;
     }
-    
+
     @Override
     public boolean supports(Class<?> sourceType, Class<?> targetType) {
-        return Order.class.isAssignableFrom(sourceType) 
-            && OrderPO.class.isAssignableFrom(targetType);
+        return Order.class.isAssignableFrom(sourceType)
+                && OrderPO.class.isAssignableFrom(targetType);
     }
 }
 
 @Component
 public class OrderPOToOrderConverter extends AbstractPersistenceConverter<OrderPO, Order> {
-    
+
     @Autowired
     private OrderItemPOToOrderItemConverter itemConverter;
-    
+
     @Override
     protected Order doConvert(OrderPO orderPO) {
         // 重建聚合根
         Order order = Order.rebuild(
-            OrderId.of(orderPO.getId()),
-            CustomerId.of(orderPO.getCustomerId()),
-            OrderStatus.valueOf(orderPO.getStatus()),
-            new Money(orderPO.getTotalAmount(), Currency.valueOf(orderPO.getCurrency())),
-            orderPO.getShippingAddress(),
-            orderPO.getRemark(),
-            orderPO.getCreatedAt(),
-            orderPO.getUpdatedAt(),
-            orderPO.getVersion()
+                OrderId.of(orderPO.getId()),
+                CustomerId.of(orderPO.getCustomerId()),
+                OrderStatus.valueOf(orderPO.getStatus()),
+                new Money(orderPO.getTotalAmount(), Currency.valueOf(orderPO.getCurrency())),
+                orderPO.getShippingAddress(),
+                orderPO.getRemark(),
+                orderPO.getCreatedAt(),
+                orderPO.getUpdatedAt(),
+                orderPO.getVersion()
         );
-        
+
         // 重建订单项
         List<OrderItem> items = orderPO.getItems().stream()
-            .map(itemConverter::convert)
-            .collect(Collectors.toList());
+                .map(itemConverter::convert)
+                .collect(Collectors.toList());
         order.rebuildItems(items);
-        
+
         return order;
     }
-    
+
     @Override
     public boolean supports(Class<?> sourceType, Class<?> targetType) {
-        return OrderPO.class.isAssignableFrom(sourceType) 
-            && Order.class.isAssignableFrom(targetType);
+        return OrderPO.class.isAssignableFrom(sourceType)
+                && Order.class.isAssignableFrom(targetType);
     }
 }
 ```
@@ -703,12 +712,12 @@ public class OrderPOToOrderConverter extends AbstractPersistenceConverter<OrderP
 ```java
 // 事件转换器接口
 public interface IEventConverter<S, T> {
-    
+
     /**
      * 转换事件
      */
     T convert(S source);
-    
+
     /**
      * 检查是否支持转换
      */
@@ -717,13 +726,13 @@ public interface IEventConverter<S, T> {
 
 // 抽象事件转换器
 public abstract class AbstractEventConverter<S, T> implements IEventConverter<S, T> {
-    
+
     @Override
     public T convert(S source) {
         Assert.notNull(source, "源事件不能为空");
         return doConvert(source);
     }
-    
+
     /**
      * 具体的转换逻辑
      */
@@ -733,23 +742,23 @@ public abstract class AbstractEventConverter<S, T> implements IEventConverter<S,
 // 具体事件转换器实现
 @Component
 public class OrderCreatedEventToMessageConverter extends AbstractEventConverter<OrderCreatedEvent, OrderCreatedMessage> {
-    
+
     @Override
     protected OrderCreatedMessage doConvert(OrderCreatedEvent event) {
         return OrderCreatedMessage.builder()
-            .orderId(event.getAggregateId())
-            .customerId(event.getCustomerId())
-            .totalAmount(event.getTotalAmount())
-            .occurredOn(event.getOccurredOn())
-            .eventId(UUID.randomUUID().toString())
-            .eventVersion(event.getVersion())
-            .build();
+                .orderId(event.getAggregateId())
+                .customerId(event.getCustomerId())
+                .totalAmount(event.getTotalAmount())
+                .occurredOn(event.getOccurredOn())
+                .eventId(UUID.randomUUID().toString())
+                .eventVersion(event.getVersion())
+                .build();
     }
-    
+
     @Override
     public boolean supports(Class<?> sourceType, Class<?> targetType) {
         return OrderCreatedEvent.class.isAssignableFrom(sourceType)
-            && OrderCreatedMessage.class.isAssignableFrom(targetType);
+                && OrderCreatedMessage.class.isAssignableFrom(targetType);
     }
 }
 ```
@@ -768,18 +777,19 @@ io.github.anthem37.ddd.infrastructure.config.AsyncExecutorConfig
 #### 条件化配置
 
 ```java
+
 @Configuration
 @ConditionalOnClass({ICommandBus.class, IQueryBus.class})
 @ConditionalOnProperty(prefix = "ddd.framework", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ConditionalDDDConfiguration {
-    
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "ddd.cqrs", name = "enabled", havingValue = "true", matchIfMissing = true)
     public ICommandBus commandBus() {
         return new CommandBus();
     }
-    
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "ddd.events", name = "enabled", havingValue = "true", matchIfMissing = true)
@@ -792,21 +802,25 @@ public class ConditionalDDDConfiguration {
 ## 🎯 设计原则
 
 ### 1. 技术隔离
+
 - **框架无关**：领域层不依赖任何技术框架
 - **适配器模式**：通过适配器连接领域层和技术实现
 - **可替换性**：技术实现可以轻松替换而不影响业务逻辑
 
 ### 2. 配置驱动
+
 - **自动配置**：提供开箱即用的默认配置
 - **条件化配置**：根据环境和需求动态配置
 - **可覆盖性**：用户可以覆盖默认配置
 
 ### 3. 异步优化
+
 - **事件异步**：领域事件异步处理，提高性能
 - **线程池隔离**：不同类型操作使用独立线程池
 - **背压处理**：合理的队列容量和拒绝策略
 
 ### 4. 监控友好
+
 - **日志记录**：关键操作都有详细日志
 - **指标暴露**：支持监控指标收集
 - **错误处理**：完善的异常处理和恢复机制
@@ -819,7 +833,7 @@ public class ConditionalDDDConfiguration {
 // 1. 自定义配置
 @Configuration
 public class CustomInfrastructureConfig {
-    
+
     /**
      * 自定义命令执行器
      */
@@ -834,7 +848,7 @@ public class CustomInfrastructureConfig {
         executor.initialize();
         return executor;
     }
-    
+
     /**
      * 自定义事件发布器
      */
@@ -850,45 +864,45 @@ public class CustomInfrastructureConfig {
 // 2. 自定义事件处理器
 @Component
 public class CustomOrderEventHandler extends AbstractEventHandler<OrderCreatedEvent> {
-    
+
     @Autowired
     private NotificationService notificationService;
-    
+
     @Autowired
     private AuditService auditService;
-    
+
     @Override
     protected void doHandle(OrderCreatedEvent event) {
         String orderId = event.getAggregateId();
-        
+
         // 发送通知
         notificationService.notifyOrderCreated(orderId);
-        
+
         // 记录审计日志
         auditService.recordOrderCreation(orderId, event.getCustomerId());
-        
+
         // 更新统计信息
         updateOrderStatistics(event);
     }
-    
+
     @Override
     protected Class<OrderCreatedEvent> getSupportedEventType() {
         return OrderCreatedEvent.class;
     }
-    
+
     private void updateOrderStatistics(OrderCreatedEvent event) {
         // 更新订单统计逻辑
-        log.info("更新订单统计: customerId={}, amount={}", 
-            event.getCustomerId(), event.getTotalAmount());
+        log.info("更新订单统计: customerId={}, amount={}",
+                event.getCustomerId(), event.getTotalAmount());
     }
-    
+
     @Override
     protected void handleError(OrderCreatedEvent event, Exception e) {
         super.handleError(event, e);
-        
+
         // 发送告警
-        String message = String.format("订单事件处理失败: orderId=%s, error=%s", 
-            event.getAggregateId(), e.getMessage());
+        String message = String.format("订单事件处理失败: orderId=%s, error=%s",
+                event.getAggregateId(), e.getMessage());
         // alertService.sendAlert("订单事件处理失败", message);
     }
 }
@@ -897,34 +911,34 @@ public class CustomOrderEventHandler extends AbstractEventHandler<OrderCreatedEv
 @Repository
 @Transactional
 public class CustomOrderRepository extends AbstractBaseRepository<Order, OrderId> {
-    
+
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-    
+
     @Autowired
     private JpaOrderRepository jpaRepository;
-    
+
     @Override
     protected void doSave(Order order) {
         // 保存到数据库
         OrderPO orderPO = convertToPO(order);
         jpaRepository.save(orderPO);
-        
+
         // 缓存到Redis
         String cacheKey = "order:" + order.getId().getValue();
         redisTemplate.opsForValue().set(cacheKey, order, Duration.ofHours(1));
     }
-    
+
     @Override
     protected Order doFindById(OrderId orderId) {
         String cacheKey = "order:" + orderId.getValue();
-        
+
         // 先从缓存查找
         Order cachedOrder = (Order) redisTemplate.opsForValue().get(cacheKey);
         if (cachedOrder != null) {
             return cachedOrder;
         }
-        
+
         // 从数据库查找
         Optional<OrderPO> orderPO = jpaRepository.findById(orderId.getValue());
         if (orderPO.isPresent()) {
@@ -933,15 +947,15 @@ public class CustomOrderRepository extends AbstractBaseRepository<Order, OrderId
             redisTemplate.opsForValue().set(cacheKey, order, Duration.ofHours(1));
             return order;
         }
-        
+
         return null;
     }
-    
+
     private OrderPO convertToPO(Order order) {
         // 转换逻辑
         return new OrderPO();
     }
-    
+
     private Order convertFromPO(OrderPO orderPO) {
         // 转换逻辑
         return new Order();
@@ -1002,43 +1016,43 @@ logging:
 // 自定义指标收集
 @Component
 public class DDDMetricsCollector {
-    
+
     private final MeterRegistry meterRegistry;
     private final Counter commandCounter;
     private final Counter queryCounter;
     private final Counter eventCounter;
     private final Timer commandTimer;
     private final Timer queryTimer;
-    
+
     public DDDMetricsCollector(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
         this.commandCounter = Counter.builder("ddd.command.total")
-            .description("Total number of commands processed")
-            .register(meterRegistry);
+                .description("Total number of commands processed")
+                .register(meterRegistry);
         this.queryCounter = Counter.builder("ddd.query.total")
-            .description("Total number of queries processed")
-            .register(meterRegistry);
+                .description("Total number of queries processed")
+                .register(meterRegistry);
         this.eventCounter = Counter.builder("ddd.event.total")
-            .description("Total number of events processed")
-            .register(meterRegistry);
+                .description("Total number of events processed")
+                .register(meterRegistry);
         this.commandTimer = Timer.builder("ddd.command.duration")
-            .description("Command processing duration")
-            .register(meterRegistry);
+                .description("Command processing duration")
+                .register(meterRegistry);
         this.queryTimer = Timer.builder("ddd.query.duration")
-            .description("Query processing duration")
-            .register(meterRegistry);
+                .description("Query processing duration")
+                .register(meterRegistry);
     }
-    
+
     public void recordCommand(String commandType, Duration duration) {
         commandCounter.increment(Tags.of("type", commandType));
         commandTimer.record(duration);
     }
-    
+
     public void recordQuery(String queryType, Duration duration) {
         queryCounter.increment(Tags.of("type", queryType));
         queryTimer.record(duration);
     }
-    
+
     public void recordEvent(String eventType) {
         eventCounter.increment(Tags.of("type", eventType));
     }
@@ -1050,20 +1064,21 @@ public class DDDMetricsCollector {
 ### 1. 自定义事件发布器
 
 ```java
+
 @Component
 public class CustomEventPublisher implements DomainEventPublisher.EventPublisher {
-    
+
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
-    
+
     @Override
     public void publish(IDomainEvent event) {
         // 发布到Kafka
         kafkaTemplate.send("domain-events", event.getEventType(), event);
-        
+
         // 同时发布到本地事件总线
         ApplicationContextHolder.getApplicationContext()
-            .publishEvent(event);
+                .publishEvent(event);
     }
 }
 ```
@@ -1071,22 +1086,23 @@ public class CustomEventPublisher implements DomainEventPublisher.EventPublisher
 ### 2. 自定义转换器管理器
 
 ```java
+
 @Component
 public class CustomConverterManager implements ConverterRegistry.ConverterManager {
-    
+
     private final Map<String, Object> converters = new ConcurrentHashMap<>();
-    
+
     @Override
     public void register(String key, Object converter) {
         converters.put(key, converter);
     }
-    
+
     @Override
     public <T> T getConverter(String key, Class<T> type) {
         Object converter = converters.get(key);
         return type.isInstance(converter) ? type.cast(converter) : null;
     }
-    
+
     // 其他方法实现...
 }
 ```

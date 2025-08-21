@@ -14,24 +14,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class GetUserQueryHandler implements IQueryHandler<GetUserQuery, UserDTO> {
-    
+
     private final IUserRepository userRepository;
-    
+
     public GetUserQueryHandler(IUserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    
+
     @Override
     public Class<GetUserQuery> getSupportedQueryType() {
         return GetUserQuery.class;
     }
-    
+
     @Override
     public UserDTO handle(GetUserQuery query) {
         UserId userId = UserId.of(query.getUserId());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + query.getUserId()));
-        
+
         return new UserDTO(
                 user.getId().getValue(),
                 user.getUsername(),

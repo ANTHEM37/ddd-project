@@ -13,13 +13,13 @@ spring:
     url: jdbc:mysql://localhost:3306/ddd_example?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: password
-    
+
   # JPA配置（虽然使用MyBatis-Plus，但保留配置以防需要）
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: false
-    
+
   # 事务配置
   transaction:
     rollback-on-commit-failure: true

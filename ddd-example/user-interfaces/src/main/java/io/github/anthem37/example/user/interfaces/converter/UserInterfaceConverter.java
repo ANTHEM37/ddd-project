@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class UserInterfaceConverter extends AbstractDTOAssembler<UserResponse, UserDTO> {
-    
+
     @Override
     public UserResponse assemble(UserDTO userDTO) {
         if (userDTO == null) {
             return null;
         }
-        
+
         return new UserResponse(
                 userDTO.getId(),
                 userDTO.getUsername(),
@@ -27,13 +27,13 @@ public class UserInterfaceConverter extends AbstractDTOAssembler<UserResponse, U
                 userDTO.getUpdatedAt()
         );
     }
-    
+
     @Override
     public UserDTO disassemble(UserResponse userResponse) {
         if (userResponse == null) {
             return null;
         }
-        
+
         return new UserDTO(
                 userResponse.getId(),
                 userResponse.getUsername(),

@@ -1,8 +1,8 @@
 package io.github.anthem37.example.user.application.orchestration;
 
 import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
-import io.github.anthem37.ddd.common.orchestration.Orchestration;
 import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
+import io.github.anthem37.ddd.common.orchestration.Orchestration;
 import io.github.anthem37.example.user.application.command.CreateUserCommand;
 import io.github.anthem37.example.user.application.query.GetUserQuery;
 import io.github.anthem37.example.user.domain.valueobject.Email;

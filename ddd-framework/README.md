@@ -386,31 +386,37 @@ flowchart TD
 ## ✨ 核心功能
 
 ### 1. CQRS 支持
+
 - **命令总线 (CommandBus)**：处理写操作，支持同步/异步执行
 - **查询总线 (QueryBus)**：处理读操作，优化查询性能
 - **处理器自动发现**：基于 Spring 容器的处理器注册和路由
 
 ### 2. 领域事件机制
+
 - **事件发布器 (DomainEventPublisher)**：纯领域层实现，不依赖外部框架
 - **Spring 集成**：基础设施层提供 Spring 事件发布实现
 - **异步处理**：支持事件的异步处理和传播
 
 ### 3. 业务编排框架
+
 - **流程编排 (Orchestration)**：支持复杂业务流程的可视化编排
 - **节点类型**：Command、Query、Condition、Generic 四种节点类型
 - **PlantUML 导出**：自动生成流程图，便于文档化和沟通
 
 ### 4. 对象转换体系
+
 - **分层转换器**：每层都有专门的转换器接口和实现
 - **类型安全**：基于泛型的类型安全转换
 - **Spring 集成**：利用 Spring 容器管理转换器生命周期
 
 ### 5. 业务规则验证
+
 - **断言工具 (Assert)**：统一的业务异常处理
 - **业务规则接口 (IBusinessRule)**：封装业务不变性和约束条件
 - **规则验证**：聚合根内置规则检查机制
 
 ### 6. 领域模型基础
+
 - **聚合根 (AbstractAggregateRoot)**：维护业务不变性，管理领域事件
 - **实体 (AbstractEntity)**：具有唯一标识的领域对象
 - **值对象 (AbstractValueObject)**：不可变的领域概念
@@ -422,6 +428,7 @@ flowchart TD
 根据项目需要，选择合适的依赖引入方式：
 
 #### 推荐方式：引入所需模块
+
 ```xml
 <!-- 基础设施层（包含自动配置，必需） -->
 <dependency>
@@ -460,6 +467,7 @@ flowchart TD
 ```
 
 #### 最小依赖（仅核心功能）
+
 ```xml
 <!-- 必需：基础设施层（包含自动配置） -->
 <dependency>
@@ -528,12 +536,13 @@ public class Order extends AbstractAggregateRoot<OrderId> {
 ### 4. 实现命令处理器
 
 ```java
+
 @Component
 public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-    
+
     @Autowired
     private IOrderRepository orderRepository;
-    
+
     @Override
     public OrderId handle(CreateOrderCommand command) {
         Order order = new Order(OrderId.generate());
@@ -541,7 +550,7 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
         orderRepository.save(order);
         return order.getId();
     }
-    
+
     @Override
     public Class<CreateOrderCommand> getSupportedCommandType() {
         return CreateOrderCommand.class;
@@ -585,21 +594,25 @@ public class OrderProcessOrchestration {
 ## 🎯 设计优势
 
 ### 1. 严格的分层架构
+
 - **依赖倒置**：内层不依赖外层，通过接口定义契约
 - **职责分离**：每层专注自己的职责，降低耦合度
 - **可测试性**：纯领域逻辑，易于单元测试
 
 ### 2. 类型安全
+
 - **泛型支持**：编译时类型检查，减少运行时错误
 - **强类型转换**：转换器提供类型安全的对象转换
 - **接口约束**：通过接口定义明确的契约
 
 ### 3. Spring 集成
+
 - **自动配置**：零配置启动，开箱即用
 - **容器管理**：利用 Spring 容器管理组件生命周期
 - **AOP 支持**：支持事务、缓存、安全等横切关注点
 
 ### 4. 扩展性
+
 - **插件化架构**：通过接口扩展功能
 - **事件驱动**：松耦合的事件机制
 - **可配置性**：支持自定义配置和扩展
@@ -607,36 +620,41 @@ public class OrderProcessOrchestration {
 ## 📚 使用案例
 
 ### 电商订单系统
+
 ```java
 // 1. 定义聚合根
-public class Order extends AbstractAggregateRoot<OrderId> { ... }
+public class Order extends AbstractAggregateRoot<OrderId> { ...
+}
 
 // 2. 实现命令处理
 @Component
-public class CreateOrderHandler implements ICommandHandler<CreateOrderCommand, OrderId> { ... }
+public class CreateOrderHandler implements ICommandHandler<CreateOrderCommand, OrderId> { ...
+}
 
 // 3. 定义查询处理
-@Component  
-public class GetOrderHandler implements IQueryHandler<GetOrderQuery, OrderDTO> { ... }
+@Component
+public class GetOrderHandler implements IQueryHandler<GetOrderQuery, OrderDTO> { ...
+}
 
 // 4. 门面层调用
 @RestController
 public class OrderController extends AbstractBaseFacade {
-    
+
     @PostMapping("/orders")
     public DataResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
         CreateOrderCommand command = assembler.toCommand(request);
         OrderId orderId = sendCommand(command);
-        
+
         GetOrderQuery query = new GetOrderQuery(orderId);
         OrderDTO orderDTO = sendQuery(query);
-        
+
         return DataResponse.success(orderDTO);
     }
 }
 ```
 
 ### 用户注册流程编排
+
 ```java
 public class UserRegistrationOrchestration {
     

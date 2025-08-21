@@ -13,27 +13,27 @@ import java.util.Optional;
  * 展示DDD框架的仓储模式
  */
 public interface IUserRepository extends IRepository<User, UserId> {
-    
+
     /**
      * 根据邮箱查找用户
      */
     Optional<User> findByEmail(Email email);
-    
+
     /**
      * 根据用户名查找用户
      */
     Optional<User> findByUsername(String username);
-    
+
     /**
      * 检查邮箱是否已存在
      */
     boolean existsByEmail(Email email);
-    
+
     /**
      * 检查用户名是否已存在
      */
     boolean existsByUsername(String username);
-    
+
     /**
      * 查找活跃用户列表
      */
