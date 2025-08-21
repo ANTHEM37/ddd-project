@@ -29,7 +29,7 @@ public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> imp
 
     @Override
     protected Optional<User> doFindById(UserId userId) {
-        UserPO userPO = userMapper.selectById(userId);
+        UserPO userPO = userMapper.selectById(userId.getValue());
         return Optional.ofNullable(ConverterRegistry.getConverter(UserConverter.class).toDomain(userPO));
     }
 
@@ -47,7 +47,7 @@ public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> imp
 
     @Override
     protected void doDeleteById(UserId userId) {
-        userMapper.deleteById(userId);
+        userMapper.deleteById(userId.getValue());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class UserRepositoryImpl extends AbstractBaseRepository<User, UserId> imp
     @Override
     protected boolean doExistsById(UserId userId) {
 
-        return userMapper.selectCount(new QueryWrapper<UserPO>().eq("id", userId)) > 0;
+        return userMapper.selectCount(new QueryWrapper<UserPO>().eq("id", userId.getValue())) > 0;
     }
 
     @Override

@@ -25,10 +25,11 @@ public class UserApplicationTest {
     
     @Test
     public void testCreateUser() {
-        // 测试创建用户
+        // 测试创建用户，使用随机邮箱避免重复
+        String randomEmail = "test" + System.currentTimeMillis() + "@example.com";
         String userId = userApplicationService.createUser(
                 "testuser", 
-                "test@example.com", 
+                randomEmail, 
                 "password123"
         );
         
@@ -37,16 +38,18 @@ public class UserApplicationTest {
         // 验证用户创建成功
         UserDTO user = userApplicationService.getUser(userId);
         assertEquals("testuser", user.getUsername());
-        assertEquals("test@example.com", user.getEmail());
+        assertEquals(randomEmail, user.getEmail());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
     }
     
     @Test
     public void testUserStatusChange() {
-        // 创建用户
+        // 创建用户，使用随机用户名和邮箱避免重复
+        String randomUsername = "testuser" + System.currentTimeMillis();
+        String randomEmail = "test" + System.currentTimeMillis() + "@example.com";
         String userId = userApplicationService.createUser(
-                "testuser2", 
-                "test2@example.com", 
+                randomUsername, 
+                randomEmail, 
                 "password123"
         );
         
