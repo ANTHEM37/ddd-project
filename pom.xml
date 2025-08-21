@@ -48,6 +48,32 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- DDD Framework Modules -->
+            <dependency>
+                <groupId>io.github.anthem37</groupId>
+                <artifactId>ddd-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.anthem37</groupId>
+                <artifactId>ddd-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.anthem37</groupId>
+                <artifactId>ddd-application</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.anthem37</groupId>
+                <artifactId>ddd-interfaces</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.anthem37</groupId>
+                <artifactId>ddd-infrastructure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

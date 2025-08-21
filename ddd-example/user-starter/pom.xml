@@ -15,17 +15,7 @@
     <description>User Application Starter</description>
 
     <dependencies>
-        <!-- 所有层的依赖 -->
-        <dependency>
-            <groupId>io.github.anthem37</groupId>
-            <artifactId>user-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.anthem37</groupId>
-            <artifactId>user-application</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!-- User Dependencies -->
         <dependency>
             <groupId>io.github.anthem37</groupId>
             <artifactId>user-infrastructure</artifactId>
