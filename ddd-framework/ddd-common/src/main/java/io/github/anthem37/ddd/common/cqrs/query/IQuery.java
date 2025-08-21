@@ -1,4 +1,4 @@
-package io.github.anthem37.ddd.application.query;
+package io.github.anthem37.ddd.common.cqrs.query;
 
 /**
  * 查询标记接口

@@ -1,9 +1,9 @@
 package io.github.anthem37.ddd.application.service;
 
-import io.github.anthem37.ddd.application.command.ICommand;
-import io.github.anthem37.ddd.application.command.ICommandBus;
-import io.github.anthem37.ddd.application.query.IQuery;
-import io.github.anthem37.ddd.application.query.IQueryBus;
+import io.github.anthem37.ddd.common.cqrs.command.ICommand;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.common.cqrs.query.IQuery;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
 
 /**
  * 应用服务标记接口

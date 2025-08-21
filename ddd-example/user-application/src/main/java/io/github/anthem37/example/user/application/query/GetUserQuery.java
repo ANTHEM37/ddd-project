@@ -1,6 +1,6 @@
 package io.github.anthem37.example.user.application.query;
 
-import io.github.anthem37.ddd.application.query.IQuery;
+import io.github.anthem37.ddd.common.cqrs.query.IQuery;
 import io.github.anthem37.example.user.application.dto.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;

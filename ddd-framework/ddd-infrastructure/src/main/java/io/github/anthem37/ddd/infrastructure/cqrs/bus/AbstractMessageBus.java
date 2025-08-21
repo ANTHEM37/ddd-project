@@ -1,9 +1,9 @@
-package io.github.anthem37.ddd.application.bus;
+package io.github.anthem37.ddd.infrastructure.cqrs.bus;
 
 import io.github.anthem37.ddd.common.assertion.Assert;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -20,13 +20,17 @@ import java.util.concurrent.Executor;
  * @date 2025/8/13 14:35:27
  */
 @Slf4j
-public abstract class AbstractMessageBus<M, H> {
+public abstract class AbstractMessageBus<M, H> implements ApplicationContextAware {
 
     // 缓存处理器映射关系
     protected final Map<Class<?>, H> handlerCache = new ConcurrentHashMap<>();
 
-    @Autowired
     protected ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * 获取执行器

@@ -1,9 +1,9 @@
 package io.github.anthem37.ddd.infrastructure.config;
 
-import io.github.anthem37.ddd.application.command.ICommandBus;
-import io.github.anthem37.ddd.application.command.impl.CommandBus;
-import io.github.anthem37.ddd.application.query.IQueryBus;
-import io.github.anthem37.ddd.application.query.impl.QueryBus;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.CommandBus;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.impl.QueryBus;
 import io.github.anthem37.ddd.common.converter.ConverterRegistry;
 import io.github.anthem37.ddd.domain.event.DomainEventPublisher;
 import io.github.anthem37.ddd.infrastructure.converter.SpringConverterManager;

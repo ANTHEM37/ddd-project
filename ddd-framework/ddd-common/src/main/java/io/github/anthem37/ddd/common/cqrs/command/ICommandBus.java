@@ -1,4 +1,4 @@
-package io.github.anthem37.ddd.application.command;
+package io.github.anthem37.ddd.common.cqrs.command;
 
 import java.util.concurrent.CompletableFuture;
 

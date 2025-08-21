@@ -1,8 +1,8 @@
 package io.github.anthem37.example.user.application.service;
 
-import io.github.anthem37.ddd.application.command.ICommandBus;
-import io.github.anthem37.ddd.application.orchestration.Orchestration;
-import io.github.anthem37.ddd.application.query.IQueryBus;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.common.orchestration.Orchestration;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
 import io.github.anthem37.ddd.application.service.IApplicationService;
 import io.github.anthem37.example.user.application.command.CreateUserCommand;
 import io.github.anthem37.example.user.application.command.UpdateUserStatusCommand;

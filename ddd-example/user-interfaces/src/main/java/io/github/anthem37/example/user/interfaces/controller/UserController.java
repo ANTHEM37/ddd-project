@@ -1,6 +1,6 @@
 package io.github.anthem37.example.user.interfaces.controller;
 
-import io.github.anthem37.ddd.application.orchestration.Orchestration;
+import io.github.anthem37.ddd.common.orchestration.Orchestration;
 import io.github.anthem37.ddd.interfaces.dto.BaseResponse;
 import io.github.anthem37.ddd.interfaces.dto.DataResponse;
 import io.github.anthem37.ddd.interfaces.facade.AbstractBaseFacade;

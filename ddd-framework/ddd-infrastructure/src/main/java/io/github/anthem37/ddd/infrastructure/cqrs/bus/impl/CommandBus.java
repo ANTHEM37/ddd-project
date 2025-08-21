@@ -1,9 +1,9 @@
-package io.github.anthem37.ddd.application.command.impl;
+package io.github.anthem37.ddd.infrastructure.cqrs.bus.impl;
 
-import io.github.anthem37.ddd.application.bus.AbstractMessageBus;
-import io.github.anthem37.ddd.application.command.ICommand;
-import io.github.anthem37.ddd.application.command.ICommandBus;
-import io.github.anthem37.ddd.application.command.ICommandHandler;
+import io.github.anthem37.ddd.common.cqrs.command.ICommand;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandBus;
+import io.github.anthem37.ddd.common.cqrs.command.ICommandHandler;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.AbstractMessageBus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

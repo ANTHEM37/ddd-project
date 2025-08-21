@@ -1,6 +1,6 @@
-package io.github.anthem37.ddd.application.converter;
+package io.github.anthem37.ddd.common.cqrs.converter;
 
-import io.github.anthem37.ddd.application.command.ICommand;
+import io.github.anthem37.ddd.common.cqrs.command.ICommand;
 
 /**
  * 命令转换器接口

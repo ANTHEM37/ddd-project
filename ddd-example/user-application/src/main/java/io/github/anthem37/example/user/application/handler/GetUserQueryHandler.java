@@ -1,6 +1,6 @@
 package io.github.anthem37.example.user.application.handler;
 
-import io.github.anthem37.ddd.application.query.IQueryHandler;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryHandler;
 import io.github.anthem37.example.user.application.dto.UserDTO;
 import io.github.anthem37.example.user.application.query.GetUserQuery;
 import io.github.anthem37.example.user.domain.model.User;

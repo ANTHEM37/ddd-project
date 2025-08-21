@@ -1,9 +1,9 @@
-package io.github.anthem37.ddd.application.query.impl;
+package io.github.anthem37.ddd.infrastructure.cqrs.bus.impl;
 
-import io.github.anthem37.ddd.application.bus.AbstractMessageBus;
-import io.github.anthem37.ddd.application.query.IQuery;
-import io.github.anthem37.ddd.application.query.IQueryBus;
-import io.github.anthem37.ddd.application.query.IQueryHandler;
+import io.github.anthem37.ddd.common.cqrs.query.IQuery;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryBus;
+import io.github.anthem37.ddd.common.cqrs.query.IQueryHandler;
+import io.github.anthem37.ddd.infrastructure.cqrs.bus.AbstractMessageBus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

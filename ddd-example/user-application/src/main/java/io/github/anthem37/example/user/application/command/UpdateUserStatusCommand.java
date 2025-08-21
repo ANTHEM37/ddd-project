@@ -1,6 +1,6 @@
 package io.github.anthem37.example.user.application.command;
 
-import io.github.anthem37.ddd.application.command.ICommand;
+import io.github.anthem37.ddd.common.cqrs.command.ICommand;
 import io.github.anthem37.example.user.domain.valueobject.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
