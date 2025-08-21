@@ -1,7 +1,5 @@
 # DDD Framework
-
 一个基于 Spring Boot 的领域驱动设计（Domain-Driven Design）框架，提供完整的 DDD 架构支持和最佳实践实现。
-
 ## 🏗️ 框架架构
 
 本框架严格遵循 DDD 分层架构，包含以下核心模块：
@@ -63,7 +61,7 @@ graph TB
     end
     
     A1 --> B1
-    A2 --> B2
+    A2 --> B1
     A3 --> B5
     A4 --> B1
     
@@ -77,8 +75,10 @@ graph TB
     
     C1 --> C2
     C1 --> C3
+    C1 --> C5
     C4 --> C6
     C5 --> C7
+    C4 --> C1
     
     B1 --> D1
     C6 --> D1
@@ -91,8 +91,6 @@ graph TB
     style B1 fill:#f3e5f5
     style C1 fill:#e8f5e8
     style D1 fill:#fff3e0
-```
-
 ```
 
 ### CQRS 架构图
@@ -128,8 +126,6 @@ graph LR
     style CMD fill:#ffcdd2
     style QRY fill:#c8e6c9
     style DE fill:#fff3e0
-```
-
 ```
 
 ### 领域模型关系图
@@ -185,8 +181,6 @@ classDiagram
     DomainService --> AggregateRoot : operates on
 ```
 
-```
-
 ### 业务编排时序图
 
 ```mermaid
@@ -196,8 +190,7 @@ sequenceDiagram
     participant Orchestration
     participant CommandBus
     participant QueryBus
-    participant CommandHandler
-    participant QueryHandler
+    participant Handler
     participant Repository
     participant AggregateRoot
     
@@ -205,27 +198,6 @@ sequenceDiagram
     Facade->>Orchestration: execute()
     
     loop 编排节点执行
-        Orchestration->>CommandBus: sendCommand()
-        CommandBus->>CommandHandler: handle()
-        CommandHandler->>Repository: save()
-        Repository->>AggregateRoot: update
-        AggregateRoot-->>Repository: updated
-        Repository-->>CommandHandler: saved
-        CommandHandler-->>CommandBus: result
-        CommandBus-->>Orchestration: result
-        
-        Orchestration->>QueryBus: sendQuery()
-        QueryBus->>QueryHandler: handle()
-        QueryHandler->>Repository: find()
-        Repository-->>QueryHandler: data
-        QueryHandler-->>QueryBus: result
-        QueryBus-->>Orchestration: result
-    end
-    
-    Orchestration-->>Facade: result
-    Facade-->>Client: HTTP Response
-```
-
         Orchestration->>CommandBus: send(command)
         CommandBus->>Handler: handle(command)
         Handler->>Repository: findById() / save()
@@ -246,7 +218,6 @@ sequenceDiagram
     
     Orchestration-->>Facade: execution result
     Facade-->>Client: HTTP Response
-
 ```
 
 ### 事件驱动架构图
@@ -354,14 +325,10 @@ graph TD
     DOMAIN --> COMMON
     APP --> DOMAIN
     APP --> COMMON
-    INFRA --> APP
-    INFRA --> DOMAIN
     INFRA --> COMMON
     INTERFACES --> APP
-    INTERFACES --> COMMON
     
     BIZ --> INTERFACES
-    BIZ --> APP
     BIZ --> INFRA
     
     INFRA --> SPRING
@@ -415,37 +382,31 @@ flowchart TD
 ## ✨ 核心功能
 
 ### 1. CQRS 支持
-
 - **命令总线 (CommandBus)**：处理写操作，支持同步/异步执行
 - **查询总线 (QueryBus)**：处理读操作，优化查询性能
 - **处理器自动发现**：基于 Spring 容器的处理器注册和路由
 
 ### 2. 领域事件机制
-
 - **事件发布器 (DomainEventPublisher)**：纯领域层实现，不依赖外部框架
 - **Spring 集成**：基础设施层提供 Spring 事件发布实现
 - **异步处理**：支持事件的异步处理和传播
 
 ### 3. 业务编排框架
-
 - **流程编排 (Orchestration)**：支持复杂业务流程的可视化编排
 - **节点类型**：Command、Query、Condition、Generic 四种节点类型
 - **PlantUML 导出**：自动生成流程图，便于文档化和沟通
 
 ### 4. 对象转换体系
-
 - **分层转换器**：每层都有专门的转换器接口和实现
 - **类型安全**：基于泛型的类型安全转换
 - **Spring 集成**：利用 Spring 容器管理转换器生命周期
 
 ### 5. 业务规则验证
-
 - **断言工具 (Assert)**：统一的业务异常处理
 - **业务规则接口 (IBusinessRule)**：封装业务不变性和约束条件
 - **规则验证**：聚合根内置规则检查机制
 
 ### 6. 领域模型基础
-
 - **聚合根 (AbstractAggregateRoot)**：维护业务不变性，管理领域事件
 - **实体 (AbstractEntity)**：具有唯一标识的领域对象
 - **值对象 (AbstractValueObject)**：不可变的领域概念
@@ -526,7 +487,6 @@ flowchart TD
 在 Spring Boot 应用中，框架会自动配置所有必要的组件：
 
 ```java
-
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
@@ -539,23 +499,23 @@ public class Application {
 
 ```java
 public class Order extends AbstractAggregateRoot<OrderId> {
-
+    
     private OrderStatus status;
     private List<OrderItem> items;
-
+    
     protected Order(OrderId id) {
         super(id);
         this.status = OrderStatus.PENDING;
         this.items = new ArrayList<>();
     }
-
+    
     public void addItem(OrderItem item) {
         checkRule(new OrderCanAddItemRule(this.status));
         this.items.add(item);
         addDomainEvent(new OrderItemAddedEvent(getId(), item));
         afterBusinessOperation();
     }
-
+    
     @Override
     protected void addDeletedDomainEvent() {
         addDomainEvent(new OrderDeletedEvent(getId()));
@@ -566,13 +526,12 @@ public class Order extends AbstractAggregateRoot<OrderId> {
 ### 4. 实现命令处理器
 
 ```java
-
 @Component
 public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
-
+    
     @Autowired
     private IOrderRepository orderRepository;
-
+    
     @Override
     public OrderId handle(CreateOrderCommand command) {
         Order order = new Order(OrderId.generate());
@@ -580,7 +539,7 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
         orderRepository.save(order);
         return order.getId();
     }
-
+    
     @Override
     public Class<CreateOrderCommand> getSupportedCommandType() {
         return CreateOrderCommand.class;
@@ -591,31 +550,30 @@ public class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
 ### 5. 使用业务编排
 
 ```java
-
 @Service
 public class OrderProcessOrchestration {
-
+    
     @Autowired
     private ICommandBus commandBus;
-
+    
     @Autowired
     private IQueryBus queryBus;
-
+    
     public void createOrderProcess() {
         Orchestration orchestration = new Orchestration("order-process", "订单处理流程", commandBus, queryBus);
-
+        
         orchestration
-                .addCommand("validate", "验证订单", ctx -> new ValidateOrderCommand(ctx.getVariable("orderId", String.class)))
-                .addCondition("check-stock", "检查库存", ctx -> checkStock(ctx))
-                .addCommand("create-order", "创建订单", ctx -> new CreateOrderCommand())
-                .addQuery("get-order", "获取订单", ctx -> new GetOrderQuery())
-                .connect("validate", "check-stock")
-                .connectWhenTrue("check-stock", "create-order")
-                .connect("create-order", "get-order");
-
+            .addCommand("validate", "验证订单", ctx -> new ValidateOrderCommand(ctx.getVariable("orderId", String.class)))
+            .addCondition("check-stock", "检查库存", ctx -> checkStock(ctx))
+            .addCommand("create-order", "创建订单", ctx -> new CreateOrderCommand())
+            .addQuery("get-order", "获取订单", ctx -> new GetOrderQuery())
+            .connect("validate", "check-stock")
+            .connectWhenTrue("check-stock", "create-order")
+            .connect("create-order", "get-order");
+            
         // 执行编排
         Orchestration.Result result = orchestration.execute();
-
+        
         // 导出 PlantUML
         String plantUML = orchestration.toPlantUML();
     }
@@ -625,25 +583,21 @@ public class OrderProcessOrchestration {
 ## 🎯 设计优势
 
 ### 1. 严格的分层架构
-
 - **依赖倒置**：内层不依赖外层，通过接口定义契约
 - **职责分离**：每层专注自己的职责，降低耦合度
 - **可测试性**：纯领域逻辑，易于单元测试
 
 ### 2. 类型安全
-
 - **泛型支持**：编译时类型检查，减少运行时错误
 - **强类型转换**：转换器提供类型安全的对象转换
 - **接口约束**：通过接口定义明确的契约
 
 ### 3. Spring 集成
-
 - **自动配置**：零配置启动，开箱即用
 - **容器管理**：利用 Spring 容器管理组件生命周期
 - **AOP 支持**：支持事务、缓存、安全等横切关注点
 
 ### 4. 扩展性
-
 - **插件化架构**：通过接口扩展功能
 - **事件驱动**：松耦合的事件机制
 - **可配置性**：支持自定义配置和扩展
@@ -651,62 +605,57 @@ public class OrderProcessOrchestration {
 ## 📚 使用案例
 
 ### 电商订单系统
-
 ```java
 // 1. 定义聚合根
-public class Order extends AbstractAggregateRoot<OrderId> { ...
-}
+public class Order extends AbstractAggregateRoot<OrderId> { ... }
 
 // 2. 实现命令处理
 @Component
-public class CreateOrderHandler implements ICommandHandler<CreateOrderCommand, OrderId> { ...
-}
+public class CreateOrderHandler implements ICommandHandler<CreateOrderCommand, OrderId> { ... }
 
 // 3. 定义查询处理
-@Component
-public class GetOrderHandler implements IQueryHandler<GetOrderQuery, OrderDTO> { ...
-}
+@Component  
+public class GetOrderHandler implements IQueryHandler<GetOrderQuery, OrderDTO> { ... }
 
 // 4. 门面层调用
 @RestController
 public class OrderController extends AbstractBaseFacade {
-
+    
     @PostMapping("/orders")
     public DataResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
         CreateOrderCommand command = assembler.toCommand(request);
         OrderId orderId = sendCommand(command);
-
+        
         GetOrderQuery query = new GetOrderQuery(orderId);
         OrderDTO orderDTO = sendQuery(query);
-
+        
         return DataResponse.success(orderDTO);
     }
 }
 ```
 
 ### 用户注册流程编排
-
 ```java
 public class UserRegistrationOrchestration {
-
+    
     public void registerUser(String email, String password) {
         Orchestration orchestration = new Orchestration("user-registration", "用户注册流程", commandBus, queryBus);
-
+        
         orchestration
-                .addQuery("check-email", "检查邮箱", ctx -> new CheckEmailExistsQuery(email))
-                .addCondition("email-available", "邮箱可用", "check-email", false)
-                .addCommand("create-user", "创建用户", ctx -> new CreateUserCommand(email, password))
-                .addCommand("send-welcome", "发送欢迎邮件", ctx -> new SendWelcomeEmailCommand(email))
-                .connect("check-email", "email-available")
-                .connectWhenTrue("email-available", "create-user")
-                .connect("create-user", "send-welcome");
-
+            .addQuery("check-email", "检查邮箱", ctx -> new CheckEmailExistsQuery(email))
+            .addCondition("email-available", "邮箱可用", "check-email", false)
+            .addCommand("create-user", "创建用户", ctx -> new CreateUserCommand(email, password))
+            .addCommand("send-welcome", "发送欢迎邮件", ctx -> new SendWelcomeEmailCommand(email))
+            .connect("check-email", "email-available")
+            .connectWhenTrue("email-available", "create-user")
+            .connect("create-user", "send-welcome");
+            
         Orchestration.Context context = new Orchestration.Context("user-reg-001");
         context.setVariable("email", email);
         context.setVariable("password", password);
-
+        
         Orchestration.Result result = orchestration.execute(context);
-
+        
         if (result.isSuccess()) {
             log.info("用户注册成功，耗时: {}ms", result.getExecutionTimeMillis());
         } else {
