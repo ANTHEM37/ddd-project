@@ -69,12 +69,6 @@ public class Order extends AbstractAggregateRoot<OrderId> {
         afterBusinessOperation();
     }
 
-    // 必须实现的抽象方法
-    @Override
-    protected void addDeletedDomainEvent() {
-        addDomainEvent(new OrderDeletedEvent(getId()));
-    }
-
     // 重写不变性检查
     @Override
     protected void validateInvariants() {
@@ -661,13 +655,7 @@ public class Order extends AbstractAggregateRoot<OrderId> {
                 .findFirst()
                 .orElse(null);
     }
-
-    // 重写基类方法
-    @Override
-    protected void addDeletedDomainEvent() {
-        addDomainEvent(new OrderDeletedEvent(getId()));
-    }
-
+    
     @Override
     protected void validateInvariants() {
         Assert.notNull(customerId, "客户ID不能为空");

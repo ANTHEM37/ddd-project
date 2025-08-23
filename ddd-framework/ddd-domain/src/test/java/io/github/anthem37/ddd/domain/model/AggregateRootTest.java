@@ -246,16 +246,6 @@ class AggregateRootTest {
         }
 
         @Override
-        protected void addDeletedDomainEvent() {
-            addDomainEvent(new TestDomainEvent("deleted") {
-                @Override
-                public String getEventType() {
-                    return "TestAggregateDeleted";
-                }
-            });
-        }
-
-        @Override
         protected void checkCanBeRemoved() {
             if (!canBeRemoved) {
                 throw new BusinessRuleViolationException("聚合不能被删除");

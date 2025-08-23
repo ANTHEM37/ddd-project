@@ -86,14 +86,7 @@ public abstract class AbstractAggregateRoot<ID> extends AbstractEntity<ID> {
      */
     public void markAsRemoved() {
         this.removed = true;
-        addDeletedDomainEvent();
     }
-
-    /**
-     * 添加删除领域事件
-     * 子类必须实现此方法来发布相应的删除事件
-     */
-    protected abstract void addDeletedDomainEvent();
 
     /**
      * 检查聚合是否可以被删除

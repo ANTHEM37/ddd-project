@@ -523,11 +523,6 @@ public class Order extends AbstractAggregateRoot<OrderId> {
         addDomainEvent(new OrderItemAddedEvent(getId(), item));
         afterBusinessOperation();
     }
-    
-    @Override
-    protected void addDeletedDomainEvent() {
-        addDomainEvent(new OrderDeletedEvent(getId()));
-    }
 }
 ```
 
